@@ -11,14 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('empresas', function (Blueprint $table) {
-            $table->id();
+        Schema::table('categorias', function (Blueprint $table) {
+            $table->string('tipo')->default('despesa');
 
-            $table->string('razao_social');
-            $table->string('nome_fantasia')->nullable();
-            $table->string('cnpj', 14)->unique();
-
-            $table->timestamps();
+            $table->index(['empresa_id', 'tipo']);
         });
     }
 
@@ -27,6 +23,9 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('empresas');
+        Schema::table('categorias', function (Blueprint $table) {
+            $table->dropIndex(['empresa_id', 'tipo']);
+            $table->dropColumn('tipo');
+        });
     }
 };

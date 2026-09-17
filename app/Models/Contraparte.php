@@ -2,31 +2,32 @@
 
 namespace App\Models;
 
-use App\Enums\LancamentoTipo;
+use App\Enums\ContraparteTipo;
 use App\Models\Scopes\EmpresaAtivaScope;
-use Database\Factories\CategoriaFactory;
+use Database\Factories\ContraparteFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class Categoria extends Model
+class Contraparte extends Model
 {
-    /** @use HasFactory<CategoriaFactory> */
+    /** @use HasFactory<ContraparteFactory> */
     use HasFactory;
-
-    protected $table = 'categorias';
 
     protected $fillable = [
         'empresa_id',
-        'nome',
-        'descricao',
         'tipo',
+        'nome',
+        'cpf_cnpj',
+        'telefone',
+        'email',
+        'endereco',
     ];
 
     protected $casts = [
-        'tipo' => LancamentoTipo::class,
+        'tipo' => ContraparteTipo::class,
     ];
 
     protected static function booted(): void
@@ -51,28 +52,20 @@ class Categoria extends Model
     }
 
     /**
-     * @return HasMany<Recorrencia, $this>
+     * @param  Builder<Contraparte>  $query
+     * @return Builder<Contraparte>
      */
-    public function recorrencias(): HasMany
+    public function scopeFornecedores(Builder $query): Builder
     {
-        return $this->hasMany(Recorrencia::class);
+        return $query->where('tipo', ContraparteTipo::Fornecedor);
     }
 
     /**
-     * @param  Builder<Categoria>  $query
-     * @return Builder<Categoria>
+     * @param  Builder<Contraparte>  $query
+     * @return Builder<Contraparte>
      */
-    public function scopeReceitas(Builder $query): Builder
+    public function scopeClientes(Builder $query): Builder
     {
-        return $query->where('tipo', LancamentoTipo::Receita);
-    }
-
-    /**
-     * @param  Builder<Categoria>  $query
-     * @return Builder<Categoria>
-     */
-    public function scopeDespesas(Builder $query): Builder
-    {
-        return $query->where('tipo', LancamentoTipo::Despesa);
+        return $query->where('tipo', ContraparteTipo::Cliente);
     }
 }

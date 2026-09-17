@@ -11,13 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('fornecedores', function (Blueprint $table) {
+        Schema::create('contrapartes', function (Blueprint $table) {
             $table->id();
 
             $table->foreignId('empresa_id')
                 ->constrained('empresas')
                 ->cascadeOnDelete();
 
+            $table->string('tipo');
             $table->string('nome');
             $table->string('cpf_cnpj')->nullable();
             $table->string('telefone')->nullable();
@@ -25,6 +26,8 @@ return new class extends Migration
             $table->text('endereco')->nullable();
 
             $table->timestamps();
+
+            $table->index(['empresa_id', 'tipo']);
         });
     }
 
@@ -33,6 +36,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('fornecedores');
+        Schema::dropIfExists('contrapartes');
     }
 };
