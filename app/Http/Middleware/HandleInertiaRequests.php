@@ -37,7 +37,24 @@ class HandleInertiaRequests extends Middleware
     {
         return [
             ...parent::share($request),
-            //
+
+            'flash' => [
+                'success' => fn () => $request->session()->get('success'),
+                'error' => fn () => $request->session()->get('error'),
+            ],
+
+            'empresas' => fn () => $request->user()?->empresas()
+                ->orderBy('empresas.razao_social')
+                ->get(['empresas.id', 'empresas.razao_social', 'empresas.nome_fantasia']),
+
+            'empresa_atual' => fn () => $request->user()?->empresas()
+                ->where('empresas.id', $request->session()->get('empresa_ativa_id'))
+                ->first(['empresas.id', 'empresas.razao_social', 'empresas.nome_fantasia']),
+
+            'periodo_ativo' => fn () => $request->session()->get(
+                'periodo_ativo',
+                now()->format('Y-m')
+            ),
         ];
     }
 }
