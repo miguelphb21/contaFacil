@@ -24,10 +24,30 @@ declare module '@inertiajs/core' {
     }
 }
 
+type ZiggyRouteParam = string | number | boolean | null | undefined;
+
+type ZiggyRouteParams =
+    | ZiggyRouteParam
+    | Array<ZiggyRouteParam>
+    | Record<string, ZiggyRouteParam>;
+
+type ZiggyRoute = (
+    name?: string,
+    params?: ZiggyRouteParams,
+    absolute?: boolean,
+    config?: unknown,
+) => string;
+
+declare global {
+    // eslint-disable-next-line no-var
+    var route: ZiggyRoute;
+}
+
 declare module 'vue' {
     interface ComponentCustomProperties {
         $inertia: typeof Router;
         $page: Page;
         $headManager: ReturnType<typeof createHeadManager>;
+        route: ZiggyRoute;
     }
 }
