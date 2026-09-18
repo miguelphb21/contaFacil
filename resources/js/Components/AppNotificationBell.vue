@@ -152,7 +152,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-    <div v-if="temEmpresa" class="relative">
+    <div v-if="temEmpresa" ref="elementoRaiz" class="relative">
         <button
             type="button"
             :aria-label="aberto ? 'Fechar notificações' : 'Abrir notificações'"
