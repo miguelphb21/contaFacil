@@ -60,6 +60,86 @@ class RecorrenciaService
         return $this->gerar($recorrencia, $fim);
     }
 
+    /**
+     * Transforma um lançamento existente em uma série recorrente, vinculando-o
+     * como a primeira ocorrência e gerando as demais.
+     */
+    public function vincular(Lancamento $lancamento, ?string $dataFim): Recorrencia
+    {
+        $inicio = CarbonImmutable::parse($lancamento->data);
+
+        $recorrencia = Recorrencia::query()->create([
+            'empresa_id' => $lancamento->empresa_id,
+            'tipo' => $lancamento->tipo,
+            'descricao' => $lancamento->descricao,
+            'valor' => $lancamento->valor,
+            'dia' => (int) $inicio->day,
+            'data_inicio' => $inicio->toDateString(),
+            'data_fim' => $dataFim,
+            'forma_pagamento' => $lancamento->forma_pagamento,
+            'ativa' => true,
+            'categoria_id' => $lancamento->categoria_id,
+            'contraparte_id' => $lancamento->contraparte_id,
+        ]);
+
+        $lancamento->update(['recorrencia_id' => $recorrencia->getKey()]);
+
+        $this->gerar($recorrencia, $this->horizonteDaRecorrencia($recorrencia));
+
+        return $recorrencia;
+    }
+
+    /**
+     * Atualiza a série a partir de um lançamento editado e regenera as
+     * ocorrências pendentes, preservando as pagas/canceladas.
+     */
+    public function sincronizar(
+        Recorrencia $recorrencia,
+        Lancamento $lancamento,
+        ?string $dataFim
+    ): void {
+        $atributos = [
+            'descricao' => $lancamento->descricao,
+            'valor' => $lancamento->valor,
+            'forma_pagamento' => $lancamento->forma_pagamento,
+            'categoria_id' => $lancamento->categoria_id,
+            'contraparte_id' => $lancamento->contraparte_id,
+            'data_fim' => $dataFim,
+            'ativa' => true,
+        ];
+
+        $dataLancamento = CarbonImmutable::parse($lancamento->data);
+
+        if ($dataLancamento->isSameMonth(CarbonImmutable::parse($recorrencia->data_inicio))) {
+            $atributos['dia'] = (int) $dataLancamento->day;
+            $atributos['data_inicio'] = $dataLancamento->toDateString();
+        }
+
+        $recorrencia->update($atributos);
+
+        $this->regenerarPendentes($recorrencia);
+    }
+
+    /**
+     * Encerra a série a partir da data informada, mantendo o histórico gerado.
+     * As ocorrências pendentes posteriores à data final são removidas, pois a
+     * série desativada não deve continuar projetando lançamentos futuros.
+     */
+    public function encerrar(Recorrencia $recorrencia, ?CarbonImmutable $fim = null): void
+    {
+        $dataFim = ($fim ?? CarbonImmutable::now())->toDateString();
+
+        $recorrencia->update([
+            'ativa' => false,
+            'data_fim' => $dataFim,
+        ]);
+
+        $recorrencia->lancamentos()
+            ->where('status', LancamentoStatus::Pendente)
+            ->whereDate('data', '>', $dataFim)
+            ->delete();
+    }
+
     private function gerarNoIntervalo(
         Recorrencia $recorrencia,
         CarbonImmutable $inicio,
