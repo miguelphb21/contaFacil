@@ -26,14 +26,14 @@ const submit = () => {
 </script>
 
 <template>
-    <Head title="Secure Area" />
+    <Head title="Confirmar senha" />
 
     <AuthenticationCard>
         <template #logo>
             <AuthenticationCardLogo />
         </template>
 
-        <div class="mb-4 text-sm text-gray-600">
+        <div class="mb-4 text-sm text-slate-600">
             This is a secure area of the application. Please confirm your password before continuing.
         </div>
 

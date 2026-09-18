@@ -299,3 +299,98 @@ it('deletes a despesa', function () {
 
     $this->assertDatabaseMissing('lancamentos', ['id' => $despesa->getKey()]);
 });
+
+it('defaults to the current month when no periodo is informed', function () {
+    $this->travelTo('2026-05-15 12:00:00');
+
+    $user = User::factory()->create();
+    $empresa = Empresa::factory()->create();
+    $user->empresas()->attach($empresa);
+
+    $atual = Lancamento::factory()->for($empresa)->receita()->create(['data' => '2026-05-10']);
+    Lancamento::factory()->for($empresa)->receita()->create(['data' => '2026-04-10']);
+
+    $this->actingAs($user)
+        ->withSession(['empresa_ativa_id' => $empresa->getKey()])
+        ->get('/receitas')
+        ->assertInertia(fn (AssertableInertia $page) => $page
+            ->component('Financeiro/Receitas')
+            ->has('lancamentos', 1)
+            ->where('lancamentos.0.id', $atual->getKey())
+            ->where('periodo.chave', '2026-05')
+            ->where('filtroData', null));
+});
+
+it('resets the period to the current month when returning to the page', function () {
+    $this->travelTo('2026-05-15 12:00:00');
+
+    $user = User::factory()->create();
+    $empresa = Empresa::factory()->create();
+    $user->empresas()->attach($empresa);
+
+    Lancamento::factory()->for($empresa)->receita()->create(['data' => '2026-01-05']);
+
+    $this->actingAs($user)
+        ->withSession(['empresa_ativa_id' => $empresa->getKey()])
+        ->get('/receitas?periodo=2026-01')
+        ->assertInertia(fn (AssertableInertia $page) => $page
+            ->where('periodo.chave', '2026-01'));
+
+    $this->actingAs($user)
+        ->withSession(['empresa_ativa_id' => $empresa->getKey()])
+        ->get('/receitas')
+        ->assertInertia(fn (AssertableInertia $page) => $page
+            ->where('periodo.chave', '2026-05'));
+});
+
+it('filters the lancamentos of a specific date', function () {
+    $user = User::factory()->create();
+    $empresa = Empresa::factory()->create();
+    $user->empresas()->attach($empresa);
+
+    $alvo = Lancamento::factory()->for($empresa)->receita()->create(['data' => '2026-01-05']);
+    Lancamento::factory()->for($empresa)->receita()->create(['data' => '2026-01-10']);
+
+    $this->actingAs($user)
+        ->withSession(['empresa_ativa_id' => $empresa->getKey()])
+        ->get('/receitas?data=2026-01-05')
+        ->assertInertia(fn (AssertableInertia $page) => $page
+            ->component('Financeiro/Receitas')
+            ->has('lancamentos', 1)
+            ->where('lancamentos.0.id', $alvo->getKey())
+            ->where('filtroData', '2026-01-05')
+            ->where('periodo.chave', '2026-01'));
+});
+
+it('ignores an invalid specific date and falls back to the period', function () {
+    $user = User::factory()->create();
+    $empresa = Empresa::factory()->create();
+    $user->empresas()->attach($empresa);
+
+    Lancamento::factory()->for($empresa)->receita()->create(['data' => '2026-01-05']);
+    Lancamento::factory()->for($empresa)->receita()->create(['data' => '2026-01-10']);
+
+    $this->actingAs($user)
+        ->withSession(['empresa_ativa_id' => $empresa->getKey()])
+        ->get('/receitas?periodo=2026-01&data=2026-02-31')
+        ->assertInertia(fn (AssertableInertia $page) => $page
+            ->has('lancamentos', 2)
+            ->where('filtroData', null)
+            ->where('periodo.chave', '2026-01'));
+});
+
+it('keeps the informed period after creating a lancamento', function () {
+    $user = User::factory()->create();
+    $empresa = Empresa::factory()->create();
+    $user->empresas()->attach($empresa);
+
+    $this->actingAs($user)
+        ->withSession(['empresa_ativa_id' => $empresa->getKey()])
+        ->post('/receitas', [
+            'descricao' => 'Venda antiga',
+            'valor' => '10',
+            'data' => '2026-01-10',
+            'periodo' => '2026-01',
+        ])
+        ->assertRedirect(route('receitas.index', ['periodo' => '2026-01']));
+});

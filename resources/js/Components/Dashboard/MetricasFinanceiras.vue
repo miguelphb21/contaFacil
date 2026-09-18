@@ -1,31 +1,34 @@
 <script setup lang="ts">
+import { Link } from '@inertiajs/vue3'
 import { computed } from 'vue'
-
-interface Resumo {
-    total_receitas: string
-    total_despesas: string
-    saldo: string
-    pagas: string
-    pendentes: string
-}
+import type { MetricaItem } from '@/types'
+import { converterParaNumero, formatarMoeda } from '@/utils/formatters'
 
 const props = defineProps<{
-    resumo: Resumo
+    receitas: MetricaItem
+    despesas: MetricaItem
+    resultado: MetricaItem
+    periodo: string
 }>()
 
-const saldoPositivo = computed(() => {
-    const numero = Number(props.resumo.saldo.replace(/\./g, '').replace(',', '.'))
+const resultadoPositivo = computed(() =>
+    converterParaNumero(props.resultado.total) >= 0,
+)
 
-    return !Number.isNaN(numero) && numero >= 0
-})
+const plural = (qtd: number) => (qtd === 1 ? '1 lançamento' : `${qtd} lançamentos`)
 </script>
 
 <template>
-    <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+    <div
+        class="grid grid-cols-1 divide-y divide-slate-100 overflow-hidden rounded-xl border border-slate-200 bg-white sm:grid-cols-3 sm:divide-x sm:divide-y-0"
+    >
+        <Link
+            :href="route('receitas.index', { periodo })"
+            class="group flex flex-col gap-1 p-6 transition hover:bg-slate-50/80"
+        >
             <div class="flex items-center justify-between">
-                <p class="text-sm font-medium text-slate-500">
-                    Receitas
+                <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">
+                    Entradas
                 </p>
 
                 <div
@@ -46,14 +49,21 @@ const saldoPositivo = computed(() => {
             </div>
 
             <p class="mt-3 text-2xl font-bold tracking-tight text-emerald-700">
-                {{ resumo.total_receitas }}
+                {{ formatarMoeda(receitas.total) }}
             </p>
-        </div>
 
-        <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+            <p class="mt-1 text-xs text-slate-400">
+                {{ plural(receitas.qtd ?? 0) }}
+            </p>
+        </Link>
+
+        <Link
+            :href="route('despesas.index', { periodo })"
+            class="group flex flex-col gap-1 p-6 transition hover:bg-slate-50/80"
+        >
             <div class="flex items-center justify-between">
-                <p class="text-sm font-medium text-slate-500">
-                    Despesas
+                <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">
+                    Saídas
                 </p>
 
                 <div
@@ -74,21 +84,26 @@ const saldoPositivo = computed(() => {
             </div>
 
             <p class="mt-3 text-2xl font-bold tracking-tight text-rose-700">
-                {{ resumo.total_despesas }}
+                {{ formatarMoeda(despesas.total) }}
             </p>
-        </div>
 
-        <div
-            class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm"
+            <p class="mt-1 text-xs text-slate-400">
+                {{ plural(despesas.qtd ?? 0) }}
+            </p>
+        </Link>
+
+        <Link
+            :href="route('relatorios.index')"
+            class="group flex flex-col gap-1 p-6 transition hover:bg-slate-50/80"
         >
             <div class="flex items-center justify-between">
-                <p class="text-sm font-medium text-slate-500">
-                    Saldo
+                <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">
+                    Resultado
                 </p>
 
                 <div
                     class="flex h-9 w-9 items-center justify-center rounded-lg"
-                    :class="saldoPositivo
+                    :class="resultadoPositivo
                         ? 'bg-emerald-50 text-emerald-700'
                         : 'bg-rose-50 text-rose-700'"
                 >
@@ -107,14 +122,14 @@ const saldoPositivo = computed(() => {
 
             <p
                 class="mt-3 text-2xl font-bold tracking-tight"
-                :class="saldoPositivo ? 'text-emerald-700' : 'text-rose-700'"
+                :class="resultadoPositivo ? 'text-emerald-700' : 'text-rose-700'"
             >
-                {{ resumo.saldo }}
+                {{ formatarMoeda(resultado.total) }}
             </p>
 
             <p class="mt-1 text-xs text-slate-400">
-                Pagas {{ resumo.pagas }} / Pendentes {{ resumo.pendentes }}
+                Receitas − Despesas
             </p>
-        </div>
+        </Link>
     </div>
 </template>

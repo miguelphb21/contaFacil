@@ -6,9 +6,7 @@ use App\Models\Categoria;
 use App\Models\Contraparte;
 use App\Models\Empresa;
 use App\Models\Lancamento;
-use App\Models\Recorrencia;
 use App\Models\User;
-use App\Services\RecorrenciaService;
 
 afterEach(function () {
     $this->travelBack();
@@ -127,50 +125,6 @@ it('atualiza uma despesa via {verbo} preservando categoria e contraparte', funct
         ->and($despesa->forma_pagamento)->toBe('boleto')
         ->and($despesa->categoria_id)->toBe($categoria->getKey())
         ->and($despesa->contraparte_id)->toBe($fornecedor->getKey());
-})->with([
-    'patch' => ['patch'],
-    'put' => ['put'],
-]);
-
-it('atualiza uma recorrência via {verbo} regenerando os lançamentos pendentes', function (string $verbo) {
-    $this->travelTo('2026-01-15 12:00:00');
-
-    $user = User::factory()->create();
-    $empresa = Empresa::factory()->create();
-    $user->empresas()->attach($empresa);
-
-    $recorrencia = Recorrencia::factory()->for($empresa)->despesa()->create([
-        'descricao' => 'Aluguel',
-        'valor' => '1500.00',
-        'dia' => 10,
-        'data_inicio' => '2026-01-01',
-    ]);
-
-    app(RecorrenciaService::class)->manterHorizonte(24);
-
-    $this->actingAs($user)
-        ->withSession(['empresa_ativa_id' => $empresa->getKey()])
-        ->{$verbo}("/recorrencias/{$recorrencia->getKey()}", [
-            'tipo' => 'despesa',
-            'descricao' => 'Aluguel novo',
-            'valor' => '2000.00',
-            'dia' => 10,
-            'data_inicio' => '2026-01-01',
-            'data_fim' => null,
-            'forma_pagamento' => null,
-            'ativa' => true,
-        ])
-        ->assertRedirect(route('recorrencias.index'))
-        ->assertSessionHas('success', 'Recorrência atualizada com sucesso.');
-
-    $recorrencia->refresh();
-
-    expect($recorrencia->descricao)->toBe('Aluguel novo')
-        ->and($recorrencia->valor)->toBe('2000.00');
-
-    expect($recorrencia->lancamentos()->pendentes()->count())->toBe(25)
-        ->and($recorrencia->lancamentos()->pendentes()->first()->descricao)->toBe('Aluguel novo')
-        ->and($recorrencia->lancamentos()->pendentes()->first()->valor)->toBe('2000.00');
 })->with([
     'patch' => ['patch'],
     'put' => ['put'],

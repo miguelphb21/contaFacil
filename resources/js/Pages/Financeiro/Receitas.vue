@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import AppLayout from '@/Layouts/AppLayout.vue'
+import { Head } from '@inertiajs/vue3'
 import LancamentoList from '@/Components/Financeiro/LancamentoList.vue'
 import type {
     LancamentoItem,
@@ -15,14 +16,18 @@ interface Props {
     contrapartes: Opcao[]
     resumo: ResumoMensal
     periodo: Periodo
+    filtroData: string | null
+    novo?: boolean
 }
 
 defineProps<Props>()
 </script>
 
 <template>
+    <Head :title="'Receitas'" />
+
     <AppLayout>
-        <div class="min-h-screen bg-gray-50 p-6 lg:p-8">
+        <div class="min-h-screen bg-[#f6f6f2] p-4 sm:p-6 lg:p-8">
             <LancamentoList
                 titulo="Receitas"
                 descricao="Acompanhe as entradas de caixa do mês."
@@ -33,6 +38,8 @@ defineProps<Props>()
                 :contrapartes="contrapartes"
                 :resumo="resumo"
                 :periodo="periodo"
+                :filtro-data="filtroData"
+                :novo="novo ?? false"
             />
         </div>
     </AppLayout>

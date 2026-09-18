@@ -23,24 +23,36 @@ class PeriodoFinanceiroService
     ];
 
     /**
-     * Resolve o período "Y-m" vindo da request, persistindo na sessão.
+     * Resolve o período "Y-m" vindo da request.
+     *
+     * Sempre parte do mês/ano atual quando nenhum período válido é informado,
+     * garantindo que a página reinicie no mês corrente a cada nova entrada.
      */
     public function resolver(?string $periodo): string
     {
         if ($periodo !== null && preg_match('/^\d{4}-(0[1-9]|1[0-2])$/', $periodo) === 1) {
-            session(['periodo_ativo' => $periodo]);
-
             return $periodo;
         }
 
-        if ($periodo === null && session()->has('periodo_ativo')) {
-            return session('periodo_ativo');
+        return now()->format('Y-m');
+    }
+
+    /**
+     * Valida uma data específica "Y-m-d" vinda da request.
+     */
+    public function resolverData(?string $data): ?string
+    {
+        if ($data === null || preg_match('/^\d{4}-\d{2}-\d{2}$/', $data) !== 1) {
+            return null;
         }
 
-        $atual = now()->format('Y-m');
-        session(['periodo_ativo' => $atual]);
+        [$ano, $mes, $dia] = array_map('intval', explode('-', $data));
 
-        return $atual;
+        if (! checkdate($mes, $dia, $ano)) {
+            return null;
+        }
+
+        return $data;
     }
 
     /**

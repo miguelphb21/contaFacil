@@ -25,7 +25,7 @@ const goBack = (fallback: string) => {
     <button
         type="button"
         @click="goBack(fallback)"
-        class="inline-flex items-center gap-2 text-sm font-medium text-gray-500 transition hover:text-emerald-700"
+        class="inline-flex items-center gap-2 text-sm font-medium text-slate-500 transition hover:text-slate-900"
     >
         <svg
             class="h-4 w-4"
