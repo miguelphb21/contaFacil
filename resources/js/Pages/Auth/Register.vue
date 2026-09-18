@@ -26,14 +26,17 @@ const submit = () => {
 <template>
     <Head title="Criar conta" />
 
-    <AuthenticationCard>
+    <AuthenticationCard
+        title="Criar conta"
+        description="Comece a organizar suas finanças em poucos minutos."
+    >
         <template #logo>
             <AuthenticationCardLogo />
         </template>
 
         <form @submit.prevent="submit">
             <div>
-                <InputLabel for="name" value="Name" />
+                <InputLabel for="name" value="Nome" />
                 <TextInput
                     id="name"
                     v-model="form.name"
@@ -47,7 +50,7 @@ const submit = () => {
             </div>
 
             <div class="mt-4">
-                <InputLabel for="email" value="Email" />
+                <InputLabel for="email" value="E-mail" />
                 <TextInput
                     id="email"
                     v-model="form.email"
@@ -60,7 +63,7 @@ const submit = () => {
             </div>
 
             <div class="mt-4">
-                <InputLabel for="password" value="Password" />
+                <InputLabel for="password" value="Senha" />
                 <TextInput
                     id="password"
                     v-model="form.password"
@@ -73,7 +76,7 @@ const submit = () => {
             </div>
 
             <div class="mt-4">
-                <InputLabel for="password_confirmation" value="Confirm Password" />
+                <InputLabel for="password_confirmation" value="Confirme a senha" />
                 <TextInput
                     id="password_confirmation"
                     v-model="form.password_confirmation"
@@ -91,22 +94,40 @@ const submit = () => {
                         <Checkbox id="terms" v-model:checked="form.terms" name="terms" required />
 
                         <div class="ms-2">
-                            I agree to the <a target="_blank" :href="route('terms.show')" class="underline text-sm text-slate-600 hover:text-slate-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-900">Terms of Service</a> and <a target="_blank" :href="route('policy.show')" class="underline text-sm text-slate-600 hover:text-slate-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-900">Privacy Policy</a>
+                            Concordo com os
+                            <a
+                                target="_blank"
+                                :href="route('terms.show')"
+                                class="text-sm text-emerald-600 underline hover:text-emerald-800 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500"
+                            >
+                                Termos de Serviço
+                            </a>
+                            e a
+                            <a
+                                target="_blank"
+                                :href="route('policy.show')"
+                                class="text-sm text-emerald-600 underline hover:text-emerald-800 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500"
+                            >
+                                Política de Privacidade
+                            </a>
                         </div>
                     </div>
                     <InputError class="mt-2" :message="form.errors.terms" />
                 </InputLabel>
             </div>
 
-            <div class="flex items-center justify-end mt-4">
-                <Link :href="route('login')" class="underline text-sm text-slate-600 hover:text-slate-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-900">
-                    Already registered?
-                </Link>
-
-                <PrimaryButton class="ms-4" :class="{ 'opacity-25': form.processing }" :disabled="form.processing">
-                    Register
+            <div class="mt-6">
+                <PrimaryButton class="w-full justify-center" :class="{ 'opacity-25': form.processing }" :disabled="form.processing">
+                    Criar conta
                 </PrimaryButton>
             </div>
+
+            <p class="mt-6 text-center text-sm text-slate-500">
+                Já possui uma conta?
+                <Link :href="route('login')" class="font-semibold text-emerald-600 hover:text-emerald-800">
+                    Entrar
+                </Link>
+            </p>
         </form>
     </AuthenticationCard>
 </template>

@@ -32,7 +32,10 @@ const submit = () => {
 <template>
     <Head title="Entrar" />
 
-    <AuthenticationCard>
+    <AuthenticationCard
+        title="Entrar"
+        description="Acesse sua conta para gerenciar suas finanças."
+    >
         <template #logo>
             <AuthenticationCardLogo />
         </template>
@@ -43,7 +46,7 @@ const submit = () => {
 
         <form @submit.prevent="submit">
             <div>
-                <InputLabel for="email" value="Email" />
+                <InputLabel for="email" value="E-mail" />
                 <TextInput
                     id="email"
                     v-model="form.email"
@@ -57,7 +60,7 @@ const submit = () => {
             </div>
 
             <div class="mt-4">
-                <InputLabel for="password" value="Password" />
+                <InputLabel for="password" value="Senha" />
                 <TextInput
                     id="password"
                     v-model="form.password"
@@ -69,22 +72,33 @@ const submit = () => {
                 <InputError class="mt-2" :message="form.errors.password" />
             </div>
 
-            <div class="block mt-4">
+            <div class="mt-4 flex items-center justify-between">
                 <label class="flex items-center">
                     <Checkbox v-model:checked="form.remember" name="remember" />
-                    <span class="ms-2 text-sm text-slate-600">Remember me</span>
+                    <span class="ms-2 text-sm text-slate-600">Lembrar de mim</span>
                 </label>
+
+                <Link
+                    v-if="canResetPassword"
+                    :href="route('password.request')"
+                    class="text-sm text-emerald-600 underline hover:text-emerald-800 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500"
+                >
+                    Esqueceu a senha?
+                </Link>
             </div>
 
-            <div class="flex items-center justify-end mt-4">
-                <Link v-if="canResetPassword" :href="route('password.request')" class="underline text-sm text-slate-600 hover:text-slate-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-900">
-                    Forgot your password?
-                </Link>
-
-                <PrimaryButton class="ms-4" :class="{ 'opacity-25': form.processing }" :disabled="form.processing">
-                    Log in
+            <div class="mt-6">
+                <PrimaryButton class="w-full justify-center" :class="{ 'opacity-25': form.processing }" :disabled="form.processing">
+                    Entrar
                 </PrimaryButton>
             </div>
+
+            <p class="mt-6 text-center text-sm text-slate-500">
+                Ainda não tem uma conta?
+                <Link :href="route('register')" class="font-semibold text-emerald-600 hover:text-emerald-800">
+                    Criar conta
+                </Link>
+            </p>
         </form>
     </AuthenticationCard>
 </template>
