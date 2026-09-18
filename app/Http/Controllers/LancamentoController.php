@@ -149,6 +149,29 @@ abstract class LancamentoController extends Controller
         return back()->with('success', 'Recorrência encerrada com sucesso.');
     }
 
+    public function excluirRecorrencia(
+        Request $request,
+        Lancamento $lancamento,
+        RecorrenciaService $recorrencias
+    ): RedirectResponse {
+        $this->authorize('delete', $lancamento);
+
+        abort_unless($lancamento->tipo === $this->tipo(), 404);
+
+        $recorrencia = $lancamento->recorrencia;
+
+        if ($recorrencia === null) {
+            return back()->with('error', 'Este lançamento não é recorrente.');
+        }
+
+        $quantidade = $recorrencias->excluirPendentes($recorrencia);
+
+        $mensagem = 'Recorrência excluída: '.$quantidade
+            .' ocorrência(s) pendente(s) removida(s).';
+
+        return $this->redirecionarIndex($request, $mensagem);
+    }
+
     public function destroy(
         Request $request,
         Lancamento $lancamento,

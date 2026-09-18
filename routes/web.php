@@ -56,6 +56,7 @@ Route::middleware([
     Route::post('receitas', [ReceitaController::class, 'store'])->name('receitas.store');
     Route::post('receitas/{lancamento}/status', [ReceitaController::class, 'status'])->name('receitas.status');
     Route::post('receitas/{lancamento}/encerrar-recorrencia', [ReceitaController::class, 'encerrarRecorrencia'])->name('receitas.encerrar-recorrencia');
+    Route::delete('receitas/{lancamento}/recorrencia', [ReceitaController::class, 'excluirRecorrencia'])->name('receitas.excluir-recorrencia');
     Route::match(['put', 'patch'], 'receitas/{lancamento}', [ReceitaController::class, 'update'])->name('receitas.update');
     Route::delete('receitas/{lancamento}', [ReceitaController::class, 'destroy'])->name('receitas.destroy');
 
@@ -63,6 +64,7 @@ Route::middleware([
     Route::post('despesas', [DespesaController::class, 'store'])->name('despesas.store');
     Route::post('despesas/{lancamento}/status', [DespesaController::class, 'status'])->name('despesas.status');
     Route::post('despesas/{lancamento}/encerrar-recorrencia', [DespesaController::class, 'encerrarRecorrencia'])->name('despesas.encerrar-recorrencia');
+    Route::delete('despesas/{lancamento}/recorrencia', [DespesaController::class, 'excluirRecorrencia'])->name('despesas.excluir-recorrencia');
     Route::match(['put', 'patch'], 'despesas/{lancamento}', [DespesaController::class, 'update'])->name('despesas.update');
     Route::delete('despesas/{lancamento}', [DespesaController::class, 'destroy'])->name('despesas.destroy');
 

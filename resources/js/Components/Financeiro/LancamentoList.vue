@@ -140,6 +140,20 @@ const excluir = (id: number) => {
     )
 }
 
+const excluirTodos = (id: number) => {
+    if (!confirm('Deseja excluir todas as ocorrências pendentes desta recorrência? As pagas e canceladas serão preservadas.')) {
+        return
+    }
+
+    router.delete(
+        route(`${props.prefixoRota}.excluir-recorrencia`, {
+            lancamento: id,
+            periodo: props.periodo.chave,
+        }),
+        { preserveScroll: true },
+    )
+}
+
 const encerrarRecorrencia = (id: number) => {
     if (!confirm('Deseja encerrar esta recorrência? As ocorrências futuras deixarão de ser geradas.')) {
         return
@@ -348,6 +362,15 @@ const descricaoPeriodo = (lancamento: LancamentoItem) => {
                                             class="rounded-lg px-3 py-2 text-sm font-medium text-red-500 transition hover:bg-red-50 hover:text-red-700"
                                         >
                                             Excluir
+                                        </button>
+
+                                        <button
+                                            v-if="lancamento.recorrencia"
+                                            type="button"
+                                            @click="excluirTodos(lancamento.id)"
+                                            class="rounded-lg px-3 py-2 text-sm font-semibold text-red-600 transition hover:bg-red-50 hover:text-red-800"
+                                        >
+                                            Excluir todos
                                         </button>
                                     </div>
                                 </td>

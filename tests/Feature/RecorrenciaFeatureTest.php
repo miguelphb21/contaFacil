@@ -311,6 +311,63 @@ it('removes all future pending occurrences when encerrar is triggered from a fut
     'receita' => ['receita', '/receitas'],
 ]);
 
+it('excludes all pending occurrences of a recorrência while preserving the paid history', function (string $tipo, string $rota) {
+    $this->travelTo('2026-01-15 12:00:00');
+
+    $user = User::factory()->create();
+    $empresa = Empresa::factory()->create();
+    $user->empresas()->attach($empresa);
+
+    $recorrencia = Recorrencia::factory()->for($empresa)->{$tipo}()->create([
+        'descricao' => "Recorrente {$tipo}",
+        'valor' => '150.00',
+        'dia' => 10,
+        'data_inicio' => '2026-01-01',
+    ]);
+
+    app(RecorrenciaService::class)->manterHorizonte(24);
+
+    $paga = $recorrencia->lancamentos()
+        ->whereBetween('data', ['2026-06-01', '2026-06-30'])
+        ->firstOrFail();
+    $paga->update(['status' => LancamentoStatus::Pago]);
+
+    $ocorrencia = $recorrencia->lancamentos()->firstOrFail();
+
+    $this->actingAs($user)
+        ->withSession(['empresa_ativa_id' => $empresa->getKey()])
+        ->from($rota)
+        ->delete("{$rota}/{$ocorrencia->getKey()}/recorrencia")
+        ->assertRedirect($rota)
+        ->assertSessionHas('success', 'Recorrência excluída: 24 ocorrência(s) pendente(s) removida(s).');
+
+    $recorrencia->refresh();
+
+    expect($recorrencia->ativa)->toBeFalse()
+        ->and($recorrencia->lancamentos()->where('status', LancamentoStatus::Pendente)->count())->toBe(0)
+        ->and($recorrencia->lancamentos()->where('status', LancamentoStatus::Pago)->count())->toBe(1);
+})->with([
+    'despesa' => ['despesa', '/despesas'],
+    'receita' => ['receita', '/receitas'],
+]);
+
+it('flashes an error when excluding the recorrência of a non-recurring lançamento', function () {
+    $this->travelTo('2026-01-15 12:00:00');
+
+    $user = User::factory()->create();
+    $empresa = Empresa::factory()->create();
+    $user->empresas()->attach($empresa);
+
+    $lancamento = Lancamento::factory()->for($empresa)->despesa()->create();
+
+    $this->actingAs($user)
+        ->withSession(['empresa_ativa_id' => $empresa->getKey()])
+        ->from('/despesas')
+        ->delete("/despesas/{$lancamento->getKey()}/recorrencia")
+        ->assertRedirect('/despesas')
+        ->assertSessionHas('error', 'Este lançamento não é recorrente.');
+});
+
 it('returns 404 when closing a recorrência of another empresa', function () {
     $user = User::factory()->create();
     $empresa = Empresa::factory()->create();

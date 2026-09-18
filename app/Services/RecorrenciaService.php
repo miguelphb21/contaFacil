@@ -62,6 +62,31 @@ class RecorrenciaService
     }
 
     /**
+     * Exclui todas as ocorrências pendentes de uma recorrência e a desativa.
+     * Registra cada mês como excluído para impedir regeneração futura.
+     * Lançamentos pagos/cancelados são preservados como histórico.
+     */
+    public function excluirPendentes(Recorrencia $recorrencia): int
+    {
+        $pendentes = $recorrencia->lancamentos()
+            ->where('status', LancamentoStatus::Pendente)
+            ->get(['id', 'data']);
+
+        foreach ($pendentes as $lancamento) {
+            $this->registrarMesExcluido($recorrencia, CarbonImmutable::parse($lancamento->data));
+        }
+
+        $recorrencia->update([
+            'ativa' => false,
+            'data_fim' => CarbonImmutable::now()->toDateString(),
+        ]);
+
+        return $recorrencia->lancamentos()
+            ->where('status', LancamentoStatus::Pendente)
+            ->delete();
+    }
+
+    /**
      * Registra o mês de uma ocorrência excluída para que a série não volte a
      * gerar a movimentação nesse período em nenhuma regeneração futura.
      */
