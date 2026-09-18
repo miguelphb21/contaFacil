@@ -113,6 +113,20 @@ export interface Flash {
     error?: string | null
 }
 
+export interface NotificacaoItem {
+    id: number
+    mensagem: string
+    lido: boolean
+    created_at: string | null
+    lancamento: {
+        id: number
+        tipo: LancamentoTipo
+        descricao: string
+        valor: string
+        data: string
+    } | null
+}
+
 export type PeriodoRelatorioTipo = 'mes' | 'periodo' | 'ano' | 'tudo'
 
 export interface PeriodoRelatorio {

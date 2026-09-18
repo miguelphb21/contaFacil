@@ -5,6 +5,7 @@ use App\Http\Controllers\ContraparteController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DespesaController;
 use App\Http\Controllers\EmpresaController;
+use App\Http\Controllers\NotificacaoController;
 use App\Http\Controllers\ReceitaController;
 use App\Http\Controllers\RelatorioController;
 use Illuminate\Support\Facades\Route;
@@ -74,4 +75,7 @@ Route::middleware([
     Route::post('categorias', [CategoriaController::class, 'store'])->name('categorias.store');
     Route::match(['put', 'patch'], 'categorias/{categoria}', [CategoriaController::class, 'update'])->name('categorias.update');
     Route::delete('categorias/{categoria}', [CategoriaController::class, 'destroy'])->name('categorias.destroy');
+
+    Route::get('notificacoes', [NotificacaoController::class, 'index'])->name('notificacoes.index');
+    Route::post('notificacoes/marcar-lidas', [NotificacaoController::class, 'marcarLidas'])->name('notificacoes.marcar-lidas');
 });

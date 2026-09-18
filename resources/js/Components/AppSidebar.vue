@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import AppNotificationBell from '@/Components/AppNotificationBell.vue'
 import EmpresaSwitcher from '@/Components/EmpresaSwitcher.vue'
 import { Link, useForm, usePage } from '@inertiajs/vue3'
 import { computed } from 'vue'
@@ -53,7 +54,7 @@ const sair = () => {
         class="fixed inset-y-0 left-0 z-50 flex w-72 flex-col border-r border-[#22392f] bg-[#12201b] text-[#e9f2ed]"
     >
         <!-- Logo -->
-        <div class="flex h-20 items-center border-b border-[#22392f] px-6">
+        <div class="flex h-20 items-center justify-between border-b border-[#22392f] px-6">
             <Link
                 :href="route('dashboard')"
                 class="flex items-center gap-3"
@@ -83,6 +84,8 @@ const sair = () => {
                     </p>
                 </div>
             </Link>
+
+            <AppNotificationBell />
         </div>
 
         <!-- Empresa ativa -->
