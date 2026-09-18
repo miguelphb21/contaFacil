@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Enums\LancamentoStatus;
 use App\Models\Lancamento;
 use App\Models\Recorrencia;
+use App\Models\RecorrenciaExclusao;
 use Carbon\CarbonImmutable;
 
 class RecorrenciaService
@@ -58,6 +59,18 @@ class RecorrenciaService
         $fim = $this->horizonteDaRecorrencia($recorrencia);
 
         return $this->gerar($recorrencia, $fim);
+    }
+
+    /**
+     * Registra o mês de uma ocorrência excluída para que a série não volte a
+     * gerar a movimentação nesse período em nenhuma regeração futura.
+     */
+    public function registrarMesExcluido(Recorrencia $recorrencia, CarbonImmutable $data): void
+    {
+        RecorrenciaExclusao::query()->updateOrCreate([
+            'recorrencia_id' => $recorrencia->getKey(),
+            'mes' => $data->startOfMonth()->toDateString(),
+        ]);
     }
 
     /**
@@ -149,7 +162,9 @@ class RecorrenciaService
         $percurso = $inicio->startOfMonth();
 
         while ($percurso->lte($fim)) {
-            if ($this->dentroDoIntervalo($recorrencia, $percurso) && ! $this->jaExiste($recorrencia, $percurso)) {
+            if ($this->dentroDoIntervalo($recorrencia, $percurso)
+                && ! $this->mesExcluido($recorrencia, $percurso)
+                && ! $this->jaExiste($recorrencia, $percurso)) {
                 Lancamento::query()->create([
                     'empresa_id' => $recorrencia->empresa_id,
                     'tipo' => $recorrencia->tipo,
@@ -189,6 +204,14 @@ class RecorrenciaService
         return Lancamento::query()
             ->where('recorrencia_id', $recorrencia->getKey())
             ->whereBetween('data', [$mes->startOfMonth(), $mes->endOfMonth()])
+            ->exists();
+    }
+
+    private function mesExcluido(Recorrencia $recorrencia, CarbonImmutable $mes): bool
+    {
+        return RecorrenciaExclusao::query()
+            ->where('recorrencia_id', $recorrencia->getKey())
+            ->where('mes', $mes->startOfMonth()->toDateString())
             ->exists();
     }
 

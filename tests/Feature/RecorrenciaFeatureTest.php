@@ -8,6 +8,7 @@ use App\Models\Lancamento;
 use App\Models\Recorrencia;
 use App\Models\User;
 use App\Services\RecorrenciaService;
+use Inertia\Testing\AssertableInertia;
 
 afterEach(function () {
     $this->travelBack();
@@ -456,4 +457,113 @@ it('does not inflate the despesa value when editing without changing the valor',
         ->and($recorrencia->lancamentos()->count())->toBe($quantidadeInicial)
         ->and($recorrencia->lancamentos()->whereDate('data', '=', '2026-02-10')->sole()->valor)->toBe('150.00')
         ->and($recorrencia->lancamentos()->whereDate('data', '=', '2026-03-10')->sole()->valor)->toBe('150.00');
+});
+
+it('does not regenerate the month of an occurrence deleted from an active recorrência', function () {
+    $this->travelTo('2026-01-15 12:00:00');
+
+    $user = User::factory()->create();
+    $empresa = Empresa::factory()->create();
+    $user->empresas()->attach($empresa);
+
+    $recorrencia = Recorrencia::factory()->for($empresa)->despesa()->create([
+        'descricao' => 'Internet',
+        'valor' => '150.00',
+        'dia' => 10,
+        'data_inicio' => '2026-01-01',
+    ]);
+
+    $service = app(RecorrenciaService::class);
+
+    expect($service->manterHorizonte(24))->toBe(25);
+
+    $ultima = $recorrencia->lancamentos()->orderByDesc('data')->firstOrFail();
+
+    $this->actingAs($user)
+        ->withSession(['empresa_ativa_id' => $empresa->getKey()])
+        ->delete("/despesas/{$ultima->getKey()}")
+        ->assertRedirect(route('despesas.index'));
+
+    expect($recorrencia->lancamentos()->count())->toBe(24);
+
+    expect($service->manterHorizonte(24))->toBe(0);
+
+    expect($recorrencia->lancamentos()->count())->toBe(24)
+        ->and($recorrencia->lancamentos()
+            ->whereBetween('data', ['2028-01-01', '2028-01-31'])
+            ->count())->toBe(0);
+});
+
+it('keeps a deleted occurrence out of the series when it is regenerated on edit', function () {
+    $this->travelTo('2026-01-15 12:00:00');
+
+    $user = User::factory()->create();
+    $empresa = Empresa::factory()->create();
+    $user->empresas()->attach($empresa);
+
+    $recorrencia = Recorrencia::factory()->for($empresa)->despesa()->create([
+        'descricao' => 'Internet',
+        'valor' => '150.00',
+        'dia' => 10,
+        'data_inicio' => '2026-01-01',
+    ]);
+
+    $service = app(RecorrenciaService::class);
+
+    expect($service->manterHorizonte(24))->toBe(25);
+
+    $junho = $recorrencia->lancamentos()
+        ->whereBetween('data', ['2026-06-01', '2026-06-30'])
+        ->firstOrFail();
+
+    $this->actingAs($user)
+        ->withSession(['empresa_ativa_id' => $empresa->getKey()])
+        ->delete("/despesas/{$junho->getKey()}")
+        ->assertRedirect(route('despesas.index'));
+
+    expect($recorrencia->lancamentos()->count())->toBe(24);
+
+    $recorrencia->update(['valor' => '200.00']);
+    $service->regenerarPendentes($recorrencia);
+
+    expect($recorrencia->lancamentos()->count())->toBe(24)
+        ->and($recorrencia->lancamentos()
+            ->whereBetween('data', ['2026-06-01', '2026-06-30'])
+            ->count())->toBe(0);
+});
+
+it('does not return a deleted recurring occurrence in the report', function () {
+    $this->travelTo('2026-01-15 12:00:00');
+
+    $user = User::factory()->create();
+    $empresa = Empresa::factory()->create();
+    $user->empresas()->attach($empresa);
+
+    $recorrencia = Recorrencia::factory()->for($empresa)->despesa()->create([
+        'descricao' => 'Internet',
+        'valor' => '150.00',
+        'dia' => 10,
+        'data_inicio' => '2026-01-01',
+    ]);
+
+    app(RecorrenciaService::class)->manterHorizonte(24);
+
+    $ultima = $recorrencia->lancamentos()->orderByDesc('data')->firstOrFail();
+
+    $this->actingAs($user)
+        ->withSession(['empresa_ativa_id' => $empresa->getKey()])
+        ->get('/relatorios?periodo=2028-01')
+        ->assertInertia(fn (AssertableInertia $page) => $page
+            ->where('dados.totais.total_despesas', '150,00')
+            ->where('dados.totais.qtd_despesas', 1));
+
+    $this->delete("/despesas/{$ultima->getKey()}")
+        ->assertRedirect(route('despesas.index'));
+
+    app(RecorrenciaService::class)->manterHorizonte(24);
+
+    $this->get('/relatorios?periodo=2028-01')
+        ->assertInertia(fn (AssertableInertia $page) => $page
+            ->where('dados.totais.total_despesas', '0,00')
+            ->where('dados.totais.qtd_despesas', 0));
 });

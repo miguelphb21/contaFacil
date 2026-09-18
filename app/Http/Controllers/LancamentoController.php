@@ -149,13 +149,25 @@ abstract class LancamentoController extends Controller
         return back()->with('success', 'Recorrência encerrada com sucesso.');
     }
 
-    public function destroy(Request $request, Lancamento $lancamento): RedirectResponse
-    {
+    public function destroy(
+        Request $request,
+        Lancamento $lancamento,
+        RecorrenciaService $recorrencias
+    ): RedirectResponse {
         $this->authorize('delete', $lancamento);
 
         abort_unless($lancamento->tipo === $this->tipo(), 404);
 
+        $recorrencia = $lancamento->recorrencia;
+
         $lancamento->delete();
+
+        if ($recorrencia !== null) {
+            $recorrencias->registrarMesExcluido(
+                $recorrencia,
+                CarbonImmutable::parse($lancamento->data)
+            );
+        }
 
         return $this->redirecionarIndex($request, 'Lançamento excluído com sucesso.');
     }

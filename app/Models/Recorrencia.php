@@ -77,6 +77,14 @@ class Recorrencia extends Model
     }
 
     /**
+     * @return HasMany<RecorrenciaExclusao, $this>
+     */
+    public function exclusoes(): HasMany
+    {
+        return $this->hasMany(RecorrenciaExclusao::class);
+    }
+
+    /**
      * @param  Builder<Recorrencia>  $query
      * @return Builder<Recorrencia>
      */
