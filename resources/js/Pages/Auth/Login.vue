@@ -93,12 +93,7 @@ const submit = () => {
                 </PrimaryButton>
             </div>
 
-            <p class="mt-6 text-center text-sm text-slate-500">
-                Ainda não tem uma conta?
-                <Link :href="route('register')" class="font-semibold text-emerald-600 hover:text-emerald-800">
-                    Criar conta
-                </Link>
-            </p>
+            
         </form>
     </AuthenticationCard>
 </template>
