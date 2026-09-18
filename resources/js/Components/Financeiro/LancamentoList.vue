@@ -2,6 +2,7 @@
 import FlashMessage from '@/Components/FlashMessage.vue'
 import ResumoMensal from '@/Components/ResumoMensal.vue'
 import PeriodoNavigator from '@/Components/PeriodoNavigator.vue'
+import Dropdown from '@/Components/Dropdown.vue'
 import LancamentoForm from '@/Components/Financeiro/LancamentoForm.vue'
 import type {
     LancamentoItem,
@@ -140,20 +141,6 @@ const excluir = (id: number) => {
     )
 }
 
-const excluirTodos = (id: number) => {
-    if (!confirm('Deseja excluir todas as ocorrências pendentes desta recorrência? As pagas e canceladas serão preservadas.')) {
-        return
-    }
-
-    router.delete(
-        route(`${props.prefixoRota}.excluir-recorrencia`, {
-            lancamento: id,
-            periodo: props.periodo.chave,
-        }),
-        { preserveScroll: true },
-    )
-}
-
 const encerrarRecorrencia = (id: number) => {
     if (!confirm('Deseja encerrar esta recorrência? As ocorrências futuras deixarão de ser geradas.')) {
         return
@@ -232,7 +219,7 @@ const descricaoPeriodo = (lancamento: LancamentoItem) => {
 
                 <div
                     v-if="lancamentos.length"
-                    class="overflow-x-auto"
+                    class="overflow-x-auto pb-28"
                 >
                     <table class="w-full text-left">
                         <thead class="bg-slate-50 text-xs uppercase tracking-wider text-slate-500">
@@ -338,16 +325,7 @@ const descricaoPeriodo = (lancamento: LancamentoItem) => {
                                 </td>
 
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="flex justify-end gap-2">
-                                        <button
-                                            v-if="lancamento.recorrencia?.ativa"
-                                            type="button"
-                                            @click="encerrarRecorrencia(lancamento.id)"
-                                            class="rounded-lg px-3 py-2 text-sm font-medium text-amber-700 transition hover:bg-amber-50 hover:text-amber-800"
-                                        >
-                                            Encerrar recorrência
-                                        </button>
-
+                                    <div class="flex items-center justify-end gap-2">
                                         <button
                                             type="button"
                                             @click="abrirEdicao(lancamento)"
@@ -356,22 +334,43 @@ const descricaoPeriodo = (lancamento: LancamentoItem) => {
                                             Editar
                                         </button>
 
-                                        <button
-                                            type="button"
-                                            @click="excluir(lancamento.id)"
-                                            class="rounded-lg px-3 py-2 text-sm font-medium text-red-500 transition hover:bg-red-50 hover:text-red-700"
-                                        >
-                                            Excluir
-                                        </button>
+                                        <Dropdown align="right" width="48">
+                                            <template #trigger>
+                                                <button
+                                                    type="button"
+                                                    title="Mais ações"
+                                                    aria-label="Mais ações"
+                                                    class="rounded-lg p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-900"
+                                                >
+                                                    <svg
+                                                        class="h-5 w-5"
+                                                        viewBox="0 0 24 24"
+                                                        fill="currentColor"
+                                                    >
+                                                        <path d="M5 10a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm7 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm7 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4z" />
+                                                    </svg>
+                                                </button>
+                                            </template>
 
-                                        <button
-                                            v-if="lancamento.recorrencia"
-                                            type="button"
-                                            @click="excluirTodos(lancamento.id)"
-                                            class="rounded-lg px-3 py-2 text-sm font-semibold text-red-600 transition hover:bg-red-50 hover:text-red-800"
-                                        >
-                                            Excluir todos
-                                        </button>
+                                            <template #content>
+                                                <button
+                                                    v-if="lancamento.recorrencia?.ativa"
+                                                    type="button"
+                                                    @click="encerrarRecorrencia(lancamento.id)"
+                                                    class="block w-full px-4 py-2 text-start text-sm font-medium text-amber-700 transition hover:bg-amber-50 hover:text-amber-800"
+                                                >
+                                                    Encerrar recorrência
+                                                </button>
+
+                                                <button
+                                                    type="button"
+                                                    @click="excluir(lancamento.id)"
+                                                    class="block w-full px-4 py-2 text-start text-sm font-medium text-red-500 transition hover:bg-red-50 hover:text-red-700"
+                                                >
+                                                    Excluir
+                                                </button>
+                                            </template>
+                                        </Dropdown>
                                     </div>
                                 </td>
                             </tr>
