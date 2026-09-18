@@ -10,7 +10,7 @@ import type {
     Periodo,
     ResumoMensal as Resumo,
 } from '@/types'
-import { ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import { router, usePage } from '@inertiajs/vue3'
 
 interface Flash {
@@ -33,12 +33,20 @@ const props = defineProps<{
     contrapartes: Opcao[]
     resumo: Resumo
     periodo: Periodo
+    filtroData: string | null
+    novo?: boolean
 }>()
 
 const page = usePage<PageProps>()
 
 const aberto = ref(false)
 const editando = ref<LancamentoItem | null>(null)
+
+onMounted(() => {
+    if (props.novo) {
+        abrirNovo()
+    }
+})
 
 const rotaIndex = route(`${props.prefixoRota}.index`)
 
@@ -102,7 +110,7 @@ const classesStatus = (status: LancamentoItem['status']) => {
     }
 
     if (status === 'cancelado') {
-        return 'bg-gray-100 text-gray-500'
+        return 'bg-slate-100 text-slate-500'
     }
 
     return 'bg-amber-50 text-amber-700'
@@ -113,7 +121,7 @@ const alterarStatus = (lancamento: LancamentoItem, evento: Event) => {
 
     router.post(
         route(`${props.prefixoRota}.status`, lancamento.id),
-        { status },
+        { status, periodo: props.periodo.chave },
         { preserveScroll: true },
     )
 }
@@ -124,9 +132,34 @@ const excluir = (id: number) => {
     }
 
     router.delete(
-        route(`${props.prefixoRota}.destroy`, id),
+        route(`${props.prefixoRota}.destroy`, {
+            lancamento: id,
+            periodo: props.periodo.chave,
+        }),
         { preserveScroll: true },
     )
+}
+
+const encerrarRecorrencia = (id: number) => {
+    if (!confirm('Deseja encerrar esta recorrência? As ocorrências futuras deixarão de ser geradas.')) {
+        return
+    }
+
+    router.post(
+        route(`${props.prefixoRota}.encerrar-recorrencia`, id),
+        { periodo: props.periodo.chave },
+        { preserveScroll: true },
+    )
+}
+
+const descricaoPeriodo = (lancamento: LancamentoItem) => {
+    const fim = lancamento.recorrencia?.data_fim
+
+    if (!fim) {
+        return 'Recorrente · contínua'
+    }
+
+    return `Recorrente · até ${formatarData(fim)}`
 }
 </script>
 
@@ -134,15 +167,15 @@ const excluir = (id: number) => {
     <div class="mx-auto max-w-6xl">
         <div class="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
-                <p class="text-sm font-medium text-emerald-700">
+                <p class="text-sm font-medium text-slate-500">
                     Financeiro
                 </p>
 
-                <h1 class="mt-1 text-2xl font-bold tracking-tight text-gray-900">
+                <h1 class="mt-1 text-2xl font-bold tracking-tight text-slate-900">
                     {{ titulo }}
                 </h1>
 
-                <p class="mt-1 text-sm text-gray-500">
+                <p class="mt-1 text-sm text-slate-500">
                     {{ descricao }}
                 </p>
             </div>
@@ -150,7 +183,7 @@ const excluir = (id: number) => {
             <button
                 type="button"
                 @click="abrirNovo"
-                class="inline-flex items-center justify-center gap-2 rounded-lg bg-emerald-700 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-800"
+                class="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-700 sm:w-auto"
             >
                 <span class="text-lg leading-none">+</span>
                 Novo lançamento
@@ -166,17 +199,19 @@ const excluir = (id: number) => {
             <PeriodoNavigator
                 :periodo="periodo"
                 :rota-index="rotaIndex"
+                :filtro-data="filtroData"
             />
 
             <ResumoMensal :resumo="resumo" />
 
-            <div class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
-                <div class="border-b border-gray-200 px-6 py-5">
-                    <h2 class="font-semibold text-gray-900">
-                        Lançamentos de {{ periodo.label }}
+            <div class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+                <div class="border-b border-slate-200 px-6 py-5">
+                    <h2 class="font-semibold text-slate-900">
+                        Lançamentos de
+                        {{ filtroData ? formatarData(filtroData) : periodo.label }}
                     </h2>
 
-                    <p class="mt-1 text-sm text-gray-500">
+                    <p class="mt-1 text-sm text-slate-500">
                         {{ lancamentos.length }} lançamento(s) no período.
                     </p>
                 </div>
@@ -186,7 +221,7 @@ const excluir = (id: number) => {
                     class="overflow-x-auto"
                 >
                     <table class="w-full text-left">
-                        <thead class="bg-gray-50 text-xs uppercase tracking-wider text-gray-500">
+                        <thead class="bg-slate-50 text-xs uppercase tracking-wider text-slate-500">
                             <tr>
                                 <th class="px-6 py-4 font-semibold">
                                     Data
@@ -210,43 +245,63 @@ const excluir = (id: number) => {
                             </tr>
                         </thead>
 
-                        <tbody class="divide-y divide-gray-100">
+                        <tbody class="divide-y divide-slate-100">
                             <tr
                                 v-for="lancamento in lancamentos"
                                 :key="lancamento.id"
-                                class="transition hover:bg-emerald-50/40"
+                                class="transition hover:bg-slate-100/60"
                             >
-                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-700">
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-700">
                                     {{ formatarData(lancamento.data) }}
                                 </td>
 
                                 <td class="max-w-md px-6 py-4">
-                                    <p class="font-semibold text-gray-900">
+                                    <p class="font-semibold text-slate-900">
                                         {{ lancamento.descricao }}
                                     </p>
 
                                     <div
-                                        v-if="lancamento.categoria || lancamento.contraparte"
+                                        v-if="lancamento.categoria || lancamento.contraparte || lancamento.recorrencia"
                                         class="mt-1 flex flex-wrap items-center gap-1.5"
                                     >
                                         <span
                                             v-if="lancamento.categoria"
-                                            class="rounded-md bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700"
+                                            class="rounded-md bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600"
                                         >
                                             {{ lancamento.categoria.nome }}
                                         </span>
 
                                         <span
                                             v-if="lancamento.contraparte"
-                                            class="rounded-md bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600"
+                                            class="rounded-md bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600"
                                         >
                                             {{ lancamento.contraparte.nome }}
+                                        </span>
+
+                                        <span
+                                            v-if="lancamento.recorrencia"
+                                            class="inline-flex items-center gap-1 rounded-md bg-slate-900 px-2 py-0.5 text-xs font-medium text-white"
+                                        >
+                                            <svg
+                                                class="h-3 w-3"
+                                                viewBox="0 0 24 24"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                stroke-width="2"
+                                            >
+                                                <path d="M17 2l4 4-4 4" />
+                                                <path d="M3 11V9a4 4 0 0 1 4-4h14" />
+                                                <path d="M7 22l-4-4 4-4" />
+                                                <path d="M21 13v2a4 4 0 0 1-4 4H3" />
+                                            </svg>
+
+                                            {{ descricaoPeriodo(lancamento) }}
                                         </span>
                                     </div>
                                 </td>
 
                                 <td class="px-6 py-4 whitespace-nowrap text-sm font-bold">
-                                    <span :class="tipo === 'receita' ? 'text-emerald-700' : 'text-red-600'">
+                                    <span :class="tipo === 'receita' ? 'text-emerald-700' : 'text-rose-700'">
                                         {{ formatarValor(lancamento.valor) }}
                                     </span>
                                 </td>
@@ -255,7 +310,7 @@ const excluir = (id: number) => {
                                     <select
                                         :value="lancamento.status"
                                         @change="alterarStatus(lancamento, $event)"
-                                        class="cursor-pointer rounded-lg border border-gray-200 bg-white px-2 py-1.5 text-xs font-semibold outline-none transition focus:border-emerald-500"
+                                        class="cursor-pointer rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-xs font-semibold outline-none transition focus:border-slate-900"
                                         :class="classesStatus(lancamento.status)"
                                     >
                                         <option
@@ -271,9 +326,18 @@ const excluir = (id: number) => {
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <div class="flex justify-end gap-2">
                                         <button
+                                            v-if="lancamento.recorrencia?.ativa"
+                                            type="button"
+                                            @click="encerrarRecorrencia(lancamento.id)"
+                                            class="rounded-lg px-3 py-2 text-sm font-medium text-amber-700 transition hover:bg-amber-50 hover:text-amber-800"
+                                        >
+                                            Encerrar recorrência
+                                        </button>
+
+                                        <button
                                             type="button"
                                             @click="abrirEdicao(lancamento)"
-                                            class="rounded-lg px-3 py-2 text-sm font-medium text-emerald-600 transition hover:bg-emerald-50 hover:text-emerald-800"
+                                            class="rounded-lg px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-slate-900"
                                         >
                                             Editar
                                         </button>
@@ -297,7 +361,7 @@ const excluir = (id: number) => {
                     class="flex flex-col items-center justify-center px-6 py-16 text-center"
                 >
                     <div
-                        class="flex h-16 w-16 items-center justify-center rounded-full bg-emerald-50 text-emerald-700"
+                        class="flex h-16 w-16 items-center justify-center rounded-full bg-slate-100 text-slate-400"
                     >
                         <svg
                             class="h-8 w-8"
@@ -310,18 +374,19 @@ const excluir = (id: number) => {
                         </svg>
                     </div>
 
-                    <h3 class="mt-4 font-semibold text-gray-900">
+                    <h3 class="mt-4 font-semibold text-slate-900">
                         Nenhum lançamento neste mês
                     </h3>
 
-                    <p class="mt-1 max-w-sm text-sm text-gray-500">
-                        Registre o primeiro lançamento de {{ periodo.label }}.
+                    <p class="mt-1 max-w-sm text-sm text-slate-500">
+                        Registre o primeiro lançamento de
+                        {{ filtroData ? formatarData(filtroData) : periodo.label }}.
                     </p>
 
                     <button
                         type="button"
                         @click="abrirNovo"
-                        class="mt-5 rounded-lg bg-emerald-700 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-800"
+                        class="mt-5 rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-700"
                     >
                         Cadastrar lançamento
                     </button>
@@ -335,6 +400,7 @@ const excluir = (id: number) => {
             :categorias="categorias"
             :contrapartes="contrapartes"
             :prefixo-rota="prefixoRota"
+            :periodo="periodo.chave"
             @fechado="fechar"
         />
     </div>

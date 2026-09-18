@@ -6,9 +6,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DespesaController;
 use App\Http\Controllers\EmpresaController;
 use App\Http\Controllers\ReceitaController;
-use App\Http\Controllers\RecorrenciaController;
 use App\Http\Controllers\RelatorioController;
-use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -24,7 +22,6 @@ Route::middleware([
         return Inertia::render('Dashboard');
     })->name('dashboard');
 
-        
 });
 
 Route::middleware([
@@ -57,20 +54,16 @@ Route::middleware([
     Route::get('receitas', [ReceitaController::class, 'index'])->name('receitas.index');
     Route::post('receitas', [ReceitaController::class, 'store'])->name('receitas.store');
     Route::post('receitas/{lancamento}/status', [ReceitaController::class, 'status'])->name('receitas.status');
+    Route::post('receitas/{lancamento}/encerrar-recorrencia', [ReceitaController::class, 'encerrarRecorrencia'])->name('receitas.encerrar-recorrencia');
     Route::match(['put', 'patch'], 'receitas/{lancamento}', [ReceitaController::class, 'update'])->name('receitas.update');
     Route::delete('receitas/{lancamento}', [ReceitaController::class, 'destroy'])->name('receitas.destroy');
 
     Route::get('despesas', [DespesaController::class, 'index'])->name('despesas.index');
     Route::post('despesas', [DespesaController::class, 'store'])->name('despesas.store');
     Route::post('despesas/{lancamento}/status', [DespesaController::class, 'status'])->name('despesas.status');
+    Route::post('despesas/{lancamento}/encerrar-recorrencia', [DespesaController::class, 'encerrarRecorrencia'])->name('despesas.encerrar-recorrencia');
     Route::match(['put', 'patch'], 'despesas/{lancamento}', [DespesaController::class, 'update'])->name('despesas.update');
     Route::delete('despesas/{lancamento}', [DespesaController::class, 'destroy'])->name('despesas.destroy');
-
-    Route::get('recorrencias', [RecorrenciaController::class, 'index'])->name('recorrencias.index');
-    Route::post('recorrencias', [RecorrenciaController::class, 'store'])->name('recorrencias.store');
-    Route::post('recorrencias/{recorrencia}/regenerar', [RecorrenciaController::class, 'regenerar'])->name('recorrencias.regenerar');
-    Route::match(['put', 'patch'], 'recorrencias/{recorrencia}', [RecorrenciaController::class, 'update'])->name('recorrencias.update');
-    Route::delete('recorrencias/{recorrencia}', [RecorrenciaController::class, 'destroy'])->name('recorrencias.destroy');
 
     Route::get('contrapartes', [ContraparteController::class, 'index'])->name('contrapartes.index');
     Route::post('contrapartes', [ContraparteController::class, 'store'])->name('contrapartes.store');

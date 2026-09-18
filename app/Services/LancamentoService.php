@@ -10,11 +10,12 @@ use Carbon\CarbonImmutable;
 class LancamentoService
 {
     /**
-     * Totais de receitas, despesas e saldo de um período "Y-m".
+     * Totais brutos de receitas, despesas e saldo de um período "Y-m",
+     * incluindo a quantidade de lançamentos por tipo.
      *
-     * @return array{total_receitas: string, total_despesas: string, saldo: string, pagas: string, pendentes: string}
+     * @return array{total_receitas: float, total_despesas: float, saldo: float, pagas: float, pendentes: float, qtd_receitas: int, qtd_despesas: int}
      */
-    public function resumo(string $periodo): array
+    public function totais(string $periodo): array
     {
         $mes = CarbonImmutable::createFromFormat('Y-m', $periodo);
 
@@ -40,12 +41,30 @@ class LancamentoService
             ->sum('valor');
 
         return [
-            'total_receitas' => $this->formatar($totalReceitas),
-            'total_despesas' => $this->formatar($totalDespesas),
-            'saldo' => $this->formatar($totalReceitas - $totalDespesas),
-            'pagas' => $this->formatar($pagas),
-            'pendentes' => $this->formatar($pendentes),
+            'total_receitas' => (float) $totalReceitas,
+            'total_despesas' => (float) $totalDespesas,
+            'saldo' => (float) $totalReceitas - $totalDespesas,
+            'pagas' => (float) $pagas,
+            'pendentes' => (float) $pendentes,
+            'qtd_receitas' => $lancamentos->where('tipo', LancamentoTipo::Receita)->count(),
+            'qtd_despesas' => $lancamentos->where('tipo', LancamentoTipo::Despesa)->count(),
         ];
+    }
+
+    /**
+     * Totais formatados de receitas, despesas e saldo de um período "Y-m".
+     *
+     * @return array{total_receitas: string, total_despesas: string, saldo: string, pagas: string, pendentes: string, qtd_receitas: int, qtd_despesas: int}
+     */
+    public function resumo(string $periodo): array
+    {
+        $totais = $this->totais($periodo);
+
+        foreach (['total_receitas', 'total_despesas', 'saldo', 'pagas', 'pendentes'] as $campo) {
+            $totais[$campo] = $this->formatar($totais[$campo]);
+        }
+
+        return $totais;
     }
 
     public function marcarPago(Lancamento $lancamento, ?string $formaPagamento = null): void

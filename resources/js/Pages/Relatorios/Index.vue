@@ -8,7 +8,7 @@ import type {
     RelatorioDados,
     RelatorioMovimentacao,
 } from '@/types'
-import { router, usePage } from '@inertiajs/vue3'
+import { Head, router, usePage } from '@inertiajs/vue3'
 import { computed, ref } from 'vue'
 
 interface PageProps {
@@ -126,7 +126,7 @@ const classesStatus = (status: RelatorioMovimentacao['status']) => {
     }
 
     if (status === 'cancelado') {
-        return 'bg-gray-100 text-gray-500'
+        return 'bg-slate-100 text-slate-500'
     }
 
     return 'bg-amber-50 text-amber-700'
@@ -134,20 +134,22 @@ const classesStatus = (status: RelatorioMovimentacao['status']) => {
 </script>
 
 <template>
+    <Head :title="'Relatórios'" />
+
     <AppLayout>
-        <div class="min-h-screen bg-gray-50 p-6 lg:p-8">
+        <div class="min-h-screen bg-[#f6f6f2] p-6 lg:p-8">
             <div class="mx-auto max-w-6xl space-y-6">
                 <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                     <div>
-                        <p class="text-sm font-medium text-emerald-700">
+                        <p class="text-sm font-medium text-slate-500">
                             Financeiro
                         </p>
 
-                        <h1 class="mt-1 text-2xl font-bold tracking-tight text-gray-900">
+                        <h1 class="mt-1 text-2xl font-bold tracking-tight text-slate-900">
                             Relatórios
                         </h1>
 
-                        <p class="mt-1 text-sm text-gray-500">
+                        <p class="mt-1 text-sm text-slate-500">
                             Relatório financeiro da empresa no período selecionado.
                         </p>
                     </div>
@@ -156,7 +158,7 @@ const classesStatus = (status: RelatorioMovimentacao['status']) => {
                         <a
                             :href="rotaExportacao('pdf')"
                             target="_blank"
-                            class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 transition hover:bg-gray-50"
+                            class="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
                         >
                             <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M12 3v12" />
@@ -169,7 +171,7 @@ const classesStatus = (status: RelatorioMovimentacao['status']) => {
                         <a
                             :href="rotaExportacao('excel')"
                             target="_blank"
-                            class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 transition hover:bg-gray-50"
+                            class="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
                         >
                             <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M12 3v12" />
@@ -187,8 +189,8 @@ const classesStatus = (status: RelatorioMovimentacao['status']) => {
                 />
 
                 <!-- Seletor de período -->
-                <div class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
-                    <div class="mb-4 inline-flex rounded-lg border border-gray-200 bg-gray-50 p-1">
+                <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                    <div class="mb-4 inline-flex rounded-lg border border-slate-200 bg-slate-50 p-1">
                         <button
                             v-for="opcao in opcoes"
                             :key="opcao.valor"
@@ -196,8 +198,8 @@ const classesStatus = (status: RelatorioMovimentacao['status']) => {
                             @click="tipo = opcao.valor"
                             class="rounded-md px-4 py-1.5 text-sm font-semibold transition"
                             :class="tipo === opcao.valor
-                                ? 'bg-white text-emerald-700 shadow-sm'
-                                : 'text-gray-500 hover:text-gray-800'"
+                                ? 'bg-slate-900 text-white shadow-sm'
+                                : 'text-slate-500 hover:text-slate-900'"
                         >
                             {{ opcao.label }}
                         </button>
@@ -205,20 +207,20 @@ const classesStatus = (status: RelatorioMovimentacao['status']) => {
 
                     <div class="flex flex-col gap-3 sm:flex-row sm:items-end">
                         <div v-if="tipo === 'mes'" class="sm:w-56">
-                            <label for="relatorio_mes" class="mb-1.5 block text-xs font-medium text-gray-500">
+                            <label for="relatorio_mes" class="mb-1.5 block text-xs font-medium text-slate-500">
                                 Mês
                             </label>
                             <input
                                 id="relatorio_mes"
                                 v-model="periodoMes"
                                 type="month"
-                                class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+                                class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10"
                             />
                         </div>
 
                         <template v-if="tipo === 'periodo'">
                             <div class="sm:w-52">
-                                <label for="relatorio_inicio" class="mb-1.5 block text-xs font-medium text-gray-500">
+                                <label for="relatorio_inicio" class="mb-1.5 block text-xs font-medium text-slate-500">
                                     De
                                 </label>
                                 <input
@@ -226,12 +228,12 @@ const classesStatus = (status: RelatorioMovimentacao['status']) => {
                                     v-model="inicio"
                                     type="date"
                                     :max="fim || hoje"
-                                    class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+                                    class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10"
                                 />
                             </div>
 
                             <div class="sm:w-52">
-                                <label for="relatorio_fim" class="mb-1.5 block text-xs font-medium text-gray-500">
+                                <label for="relatorio_fim" class="mb-1.5 block text-xs font-medium text-slate-500">
                                     Até
                                 </label>
                                 <input
@@ -240,13 +242,13 @@ const classesStatus = (status: RelatorioMovimentacao['status']) => {
                                     type="date"
                                     :min="inicio"
                                     :max="hoje"
-                                    class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+                                    class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10"
                                 />
                             </div>
                         </template>
 
                         <div v-if="tipo === 'ano'" class="sm:w-40">
-                            <label for="relatorio_ano" class="mb-1.5 block text-xs font-medium text-gray-500">
+                            <label for="relatorio_ano" class="mb-1.5 block text-xs font-medium text-slate-500">
                                 Ano
                             </label>
                             <input
@@ -256,19 +258,19 @@ const classesStatus = (status: RelatorioMovimentacao['status']) => {
                                 min="2000"
                                 max="2100"
                                 placeholder="2026"
-                                class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+                                class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10"
                             />
                         </div>
 
                         <button
                             type="button"
                             @click="consultar"
-                            class="inline-flex items-center justify-center gap-2 rounded-lg bg-emerald-700 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-800"
+                            class="inline-flex items-center justify-center gap-2 rounded-lg bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-700"
                         >
                             Consultar
                         </button>
 
-                        <p class="flex-1 text-right text-sm font-medium text-gray-500">
+                        <p class="flex-1 text-right text-sm font-medium text-slate-500">
                             {{ periodo.label }}
                         </p>
                     </div>
@@ -276,8 +278,8 @@ const classesStatus = (status: RelatorioMovimentacao['status']) => {
 
                 <!-- Totais -->
                 <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
-                    <div class="rounded-xl border border-emerald-100 bg-white p-5 shadow-sm">
-                        <p class="text-sm font-medium text-gray-500">
+                    <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                        <p class="text-sm font-medium text-slate-500">
                             Total de receitas
                         </p>
 
@@ -285,61 +287,60 @@ const classesStatus = (status: RelatorioMovimentacao['status']) => {
                             {{ formatarValor(dados.totais.total_receitas) }}
                         </p>
 
-                        <p class="mt-1 text-xs text-gray-400">
+                        <p class="mt-1 text-xs text-slate-400">
                             {{ dados.totais.qtd_receitas }} receita(s)
                         </p>
                     </div>
 
-                    <div class="rounded-xl border border-red-100 bg-white p-5 shadow-sm">
-                        <p class="text-sm font-medium text-gray-500">
+                    <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                        <p class="text-sm font-medium text-slate-500">
                             Total de despesas
                         </p>
 
-                        <p class="mt-2 text-2xl font-bold tracking-tight text-red-600">
+                        <p class="mt-2 text-2xl font-bold tracking-tight text-rose-700">
                             {{ formatarValor(dados.totais.total_despesas) }}
                         </p>
 
-                        <p class="mt-1 text-xs text-gray-400">
+                        <p class="mt-1 text-xs text-slate-400">
                             {{ dados.totais.qtd_despesas }} despesa(s)
                         </p>
                     </div>
 
                     <div
-                        class="rounded-xl border bg-white p-5 shadow-sm"
-                        :class="resultadoPositivo ? 'border-emerald-100' : 'border-red-100'"
+                        class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm"
                     >
-                        <p class="text-sm font-medium text-gray-500">
+                        <p class="text-sm font-medium text-slate-500">
                             Resultado financeiro
                         </p>
 
                         <p
                             class="mt-2 text-2xl font-bold tracking-tight"
-                            :class="resultadoPositivo ? 'text-emerald-700' : 'text-red-600'"
+                            :class="resultadoPositivo ? 'text-emerald-700' : 'text-rose-700'"
                         >
                             {{ formatarValor(dados.totais.resultado) }}
                         </p>
 
-                        <p class="mt-1 text-xs text-gray-400">
+                        <p class="mt-1 text-xs text-slate-400">
                             Receitas - Despesas
                         </p>
                     </div>
                 </div>
 
                 <!-- Tabela de receitas -->
-                <div class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
-                    <div class="border-b border-gray-200 px-6 py-4">
-                        <h2 class="font-semibold text-gray-900">
+                <div class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+                    <div class="border-b border-slate-200 px-6 py-4">
+                        <h2 class="font-semibold text-slate-900">
                             Receitas
                         </h2>
 
-                        <p class="mt-1 text-sm text-gray-500">
+                        <p class="mt-1 text-sm text-slate-500">
                             {{ dados.totais.qtd_receitas }} lançamento(s).
                         </p>
                     </div>
 
                     <div v-if="dados.receitas.length" class="overflow-x-auto">
                         <table class="w-full text-left">
-                            <thead class="bg-gray-50 text-xs uppercase tracking-wider text-gray-500">
+                            <thead class="bg-slate-50 text-xs uppercase tracking-wider text-slate-500">
                                 <tr>
                                     <th class="px-6 py-3 font-semibold">
                                         Data
@@ -367,27 +368,27 @@ const classesStatus = (status: RelatorioMovimentacao['status']) => {
                                 </tr>
                             </thead>
 
-                            <tbody class="divide-y divide-gray-100">
+                            <tbody class="divide-y divide-slate-100">
                                 <tr
                                     v-for="receita in dados.receitas"
                                     :key="receita.id"
-                                    class="transition hover:bg-emerald-50/30"
+                                    class="transition hover:bg-slate-100/60"
                                 >
-                                    <td class="px-6 py-3 whitespace-nowrap text-sm font-medium text-gray-700">
+                                    <td class="px-6 py-3 whitespace-nowrap text-sm font-medium text-slate-700">
                                         {{ formatarData(receita.data) }}
                                     </td>
 
                                     <td class="px-6 py-3">
-                                        <p class="font-semibold text-gray-900">
+                                        <p class="font-semibold text-slate-900">
                                             {{ receita.descricao }}
                                         </p>
                                     </td>
 
-                                    <td class="px-6 py-3 text-sm text-gray-600">
+                                    <td class="px-6 py-3 text-sm text-slate-600">
                                         {{ receita.contraparte || '—' }}
                                     </td>
 
-                                    <td class="px-6 py-3 text-sm text-gray-600">
+                                    <td class="px-6 py-3 text-sm text-slate-600">
                                         {{ receita.categoria || '—' }}
                                     </td>
 
@@ -409,31 +410,31 @@ const classesStatus = (status: RelatorioMovimentacao['status']) => {
                     </div>
 
                     <div v-else class="flex flex-col items-center justify-center px-6 py-12 text-center">
-                        <h3 class="font-semibold text-gray-900">
+                        <h3 class="font-semibold text-slate-900">
                             Nenhuma receita no período
                         </h3>
 
-                        <p class="mt-1 max-w-sm text-sm text-gray-500">
+                        <p class="mt-1 max-w-sm text-sm text-slate-500">
                             Não há receitas cadastradas para o período selecionado.
                         </p>
                     </div>
                 </div>
 
                 <!-- Tabela de despesas -->
-                <div class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
-                    <div class="border-b border-gray-200 px-6 py-4">
-                        <h2 class="font-semibold text-gray-900">
+                <div class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+                    <div class="border-b border-slate-200 px-6 py-4">
+                        <h2 class="font-semibold text-slate-900">
                             Despesas
                         </h2>
 
-                        <p class="mt-1 text-sm text-gray-500">
+                        <p class="mt-1 text-sm text-slate-500">
                             {{ dados.totais.qtd_despesas }} lançamento(s).
                         </p>
                     </div>
 
                     <div v-if="dados.despesas.length" class="overflow-x-auto">
                         <table class="w-full text-left">
-                            <thead class="bg-gray-50 text-xs uppercase tracking-wider text-gray-500">
+                            <thead class="bg-slate-50 text-xs uppercase tracking-wider text-slate-500">
                                 <tr>
                                     <th class="px-6 py-3 font-semibold">
                                         Data
@@ -461,31 +462,31 @@ const classesStatus = (status: RelatorioMovimentacao['status']) => {
                                 </tr>
                             </thead>
 
-                            <tbody class="divide-y divide-gray-100">
+                            <tbody class="divide-y divide-slate-100">
                                 <tr
                                     v-for="despesa in dados.despesas"
                                     :key="despesa.id"
-                                    class="transition hover:bg-red-50/30"
+                                    class="transition hover:bg-slate-100/60"
                                 >
-                                    <td class="px-6 py-3 whitespace-nowrap text-sm font-medium text-gray-700">
+                                    <td class="px-6 py-3 whitespace-nowrap text-sm font-medium text-slate-700">
                                         {{ formatarData(despesa.data) }}
                                     </td>
 
                                     <td class="px-6 py-3">
-                                        <p class="font-semibold text-gray-900">
+                                        <p class="font-semibold text-slate-900">
                                             {{ despesa.descricao }}
                                         </p>
                                     </td>
 
-                                    <td class="px-6 py-3 text-sm text-gray-600">
+                                    <td class="px-6 py-3 text-sm text-slate-600">
                                         {{ despesa.contraparte || '—' }}
                                     </td>
 
-                                    <td class="px-6 py-3 text-sm text-gray-600">
+                                    <td class="px-6 py-3 text-sm text-slate-600">
                                         {{ despesa.categoria || '—' }}
                                     </td>
 
-                                    <td class="px-6 py-3 whitespace-nowrap text-sm font-bold text-red-600">
+                                    <td class="px-6 py-3 whitespace-nowrap text-sm font-bold text-rose-700">
                                         {{ formatarValor(despesa.valor_formatado) }}
                                     </td>
 
@@ -503,11 +504,11 @@ const classesStatus = (status: RelatorioMovimentacao['status']) => {
                     </div>
 
                     <div v-else class="flex flex-col items-center justify-center px-6 py-12 text-center">
-                        <h3 class="font-semibold text-gray-900">
+                        <h3 class="font-semibold text-slate-900">
                             Nenhuma despesa no período
                         </h3>
 
-                        <p class="mt-1 max-w-sm text-sm text-gray-500">
+                        <p class="mt-1 max-w-sm text-sm text-slate-500">
                             Não há despesas cadastradas para o período selecionado.
                         </p>
                     </div>

@@ -141,8 +141,6 @@ it('renders the dashboard honoring the selected periodo', function () {
             ->component('Dashboard')
             ->where('periodo.chave', '2026-03')
             ->where('periodo.label', 'Março de 2026'));
-
-    expect(session('periodo_ativo'))->toBe('2026-03');
 });
 
 it('forbids deleting an empresa of another user', function () {

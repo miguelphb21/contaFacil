@@ -13,6 +13,8 @@ use App\Models\Contraparte;
 use App\Models\Lancamento;
 use App\Services\LancamentoService;
 use App\Services\PeriodoFinanceiroService;
+use App\Services\RecorrenciaService;
+use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -33,12 +35,24 @@ abstract class LancamentoController extends Controller
         PeriodoFinanceiroService $periodos,
         LancamentoService $lancamentos
     ): Response {
-        $periodo = $periodos->resolver($request->query('periodo'));
+        $filtroData = $periodos->resolverData($request->query('data'));
+
+        $periodo = $filtroData !== null
+            ? substr($filtroData, 0, 7)
+            : $periodos->resolver($request->query('periodo'));
 
         $items = Lancamento::query()
-            ->with(['categoria:id,nome', 'contraparte:id,nome'])
+            ->with([
+                'categoria:id,nome',
+                'contraparte:id,nome',
+                'recorrencia:id,data_inicio,data_fim,ativa',
+            ])
             ->where('tipo', $this->tipo())
-            ->doPeriodo($periodo)
+            ->when(
+                $filtroData !== null,
+                fn ($query) => $query->whereDate('data', $filtroData),
+                fn ($query) => $query->doPeriodo($periodo),
+            )
             ->orderBy('data')
             ->orderByDesc('id')
             ->get();
@@ -59,35 +73,83 @@ abstract class LancamentoController extends Controller
             'contrapartes' => $contrapartes,
             'resumo' => $lancamentos->resumo($periodo),
             'periodo' => $periodos->dados($periodo),
+            'filtroData' => $filtroData,
             'novo' => $request->query('novo') === '1',
         ]);
     }
 
-    public function store(StoreLancamentoRequest $request): RedirectResponse
-    {
-        Lancamento::query()->create($request->validated());
+    public function store(
+        StoreLancamentoRequest $request,
+        RecorrenciaService $recorrencias
+    ): RedirectResponse {
+        $dados = $request->validated();
+        $recorrente = (bool) ($dados['recorrente'] ?? false);
+        $dataFim = $dados['data_fim'] ?? null;
 
-        return redirect()
-            ->route($this->rotaIndex())
-            ->with('success', $this->tipo()->label().' registrada com sucesso.');
+        unset($dados['recorrente'], $dados['data_fim']);
+
+        $lancamento = Lancamento::query()->create($dados);
+
+        if ($recorrente) {
+            $recorrencias->vincular($lancamento, $dataFim);
+        }
+
+        return $this->redirecionarIndex($request, $this->tipo()->label().' registrada com sucesso.');
     }
 
     public function update(
         UpdateLancamentoRequest $request,
-        Lancamento $lancamento
+        Lancamento $lancamento,
+        RecorrenciaService $recorrencias
     ): RedirectResponse {
         $this->authorize('update', $lancamento);
 
         abort_unless($lancamento->tipo === $this->tipo(), 404);
 
-        $lancamento->update($request->validated());
+        $dados = $request->validated();
+        $recorrente = (bool) ($dados['recorrente'] ?? false);
+        $dataFim = $dados['data_fim'] ?? null;
 
-        return redirect()
-            ->route($this->rotaIndex())
-            ->with('success', 'Lançamento atualizado com sucesso.');
+        unset($dados['recorrente'], $dados['data_fim']);
+
+        $lancamento->update($dados);
+
+        if ($recorrente) {
+            if ($lancamento->recorrencia !== null) {
+                $recorrencias->sincronizar($lancamento->recorrencia, $lancamento, $dataFim);
+            } else {
+                $recorrencias->vincular($lancamento, $dataFim);
+            }
+        } elseif ($lancamento->recorrencia !== null) {
+            $recorrencias->encerrar(
+                $lancamento->recorrencia,
+                CarbonImmutable::parse($lancamento->data)
+            );
+        }
+
+        return $this->redirecionarIndex($request, 'Lançamento atualizado com sucesso.');
     }
 
-    public function destroy(Lancamento $lancamento): RedirectResponse
+    public function encerrarRecorrencia(
+        Lancamento $lancamento,
+        RecorrenciaService $recorrencias
+    ): RedirectResponse {
+        $this->authorize('update', $lancamento);
+
+        abort_unless($lancamento->tipo === $this->tipo(), 404);
+
+        $recorrencia = $lancamento->recorrencia;
+
+        if ($recorrencia === null) {
+            return back()->with('error', 'Este lançamento não é recorrente.');
+        }
+
+        $recorrencias->encerrar($recorrencia, CarbonImmutable::parse($lancamento->data));
+
+        return back()->with('success', 'Recorrência encerrada com sucesso.');
+    }
+
+    public function destroy(Request $request, Lancamento $lancamento): RedirectResponse
     {
         $this->authorize('delete', $lancamento);
 
@@ -95,9 +157,7 @@ abstract class LancamentoController extends Controller
 
         $lancamento->delete();
 
-        return redirect()
-            ->route($this->rotaIndex())
-            ->with('success', 'Lançamento excluído com sucesso.');
+        return $this->redirecionarIndex($request, 'Lançamento excluído com sucesso.');
     }
 
     public function status(
@@ -118,5 +178,22 @@ abstract class LancamentoController extends Controller
         }
 
         return back()->with('success', 'Status do lançamento atualizado.');
+    }
+
+    /**
+     * Redireciona para a listagem preservando o período visualizado.
+     */
+    private function redirecionarIndex(Request $request, string $mensagem): RedirectResponse
+    {
+        $periodo = $request->input('periodo');
+
+        $parametros = is_string($periodo)
+            && preg_match('/^\d{4}-(0[1-9]|1[0-2])$/', $periodo) === 1
+                ? ['periodo' => $periodo]
+                : [];
+
+        return redirect()
+            ->route($this->rotaIndex(), $parametros)
+            ->with('success', $mensagem);
     }
 }

@@ -50,36 +50,35 @@ const sair = () => {
 
 <template>
     <aside
-        class="fixed inset-y-0 left-0 z-50 flex w-72 flex-col border-r border-gray-200 bg-white text-gray-800"
+        class="fixed inset-y-0 left-0 z-50 flex w-72 flex-col border-r border-[#22392f] bg-[#12201b] text-[#e9f2ed]"
     >
         <!-- Logo -->
-        <div class="flex h-20 items-center border-b border-gray-100 px-6">
+        <div class="flex h-20 items-center border-b border-[#22392f] px-6">
             <Link
                 :href="route('dashboard')"
                 class="flex items-center gap-3"
             >
-                <div
-                    class="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700"
-                >
-                    <svg
-                        class="h-6 w-6"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                    >
-                        <path d="M12 22V12" />
-                        <path d="M12 12C7 12 4 9 4 4c5 0 8 3 8 8Z" />
-                        <path d="M12 17c0-5 3-8 8-8 0 5-3 8-8 8Z" />
-                    </svg>
-                </div>
+                <svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Fundo com cantos arredondados -->
+                    <rect width="36" height="36" rx="10" fill="#10B981"/>
+
+                    <!-- Barra de Despesa/Menor -->
+                    <path d="M11 23V17" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+
+                    <!-- Barra Intermediária -->
+                    <path d="M17 23V13" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+
+                    <!-- Barra de Receita formando o "Check" (Fácil) -->
+                    <path d="M23 23L28 12" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M23 23L20.5 19" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
 
                 <div>
-                    <h1 class="text-xl font-bold tracking-tight text-gray-900">
-                        Conta<span class="text-emerald-700">Fácil</span>
+                    <h1 class="font-figtree text-xl font-bold tracking-tight text-white">
+                        Conta<span class="text-emerald-400">Fácil</span>
                     </h1>
 
-                    <p class="text-xs text-gray-400">
+                    <p class="text-xs text-[#8ba899]">
                         Gestão financeira
                     </p>
                 </div>
@@ -87,7 +86,7 @@ const sair = () => {
         </div>
 
         <!-- Empresa ativa -->
-        <div class="border-b border-gray-100 px-4 py-4">
+        <div class="border-b border-[#404040] px-4 py-4">
             <EmpresaSwitcher
                 :empresa-atual="empresaAtual"
                 :empresas="empresas"
@@ -98,7 +97,7 @@ const sair = () => {
         <nav class="flex-1 overflow-y-auto px-4 py-6">
             <div>
                 <p
-                    class="mb-3 px-3 text-[11px] font-semibold uppercase tracking-wider text-gray-400"
+                    class="mb-3 px-3 text-[11px] font-semibold uppercase tracking-wider text-[#7f9a8c]"
                 >
                     Principal
                 </p>
@@ -108,8 +107,8 @@ const sair = () => {
                         :href="route('dashboard')"
                         class="group flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-semibold transition"
                         :class="isActive('/dashboard')
-                            ? 'bg-emerald-50 text-emerald-700'
-                            : 'font-medium text-gray-600 hover:bg-emerald-50 hover:text-emerald-700'"
+                            ? 'bg-[#244034] text-white'
+                            : 'font-medium text-[#9bb2a6] hover:bg-[#1e352b] hover:text-white'"
                     >
                         <svg
                             class="h-5 w-5"
@@ -130,8 +129,8 @@ const sair = () => {
                         :href="route('contrapartes.index')"
                         class="group flex items-center gap-3 rounded-xl px-3 py-3 text-sm transition"
                         :class="isActive('/contrapartes')
-                            ? 'bg-emerald-50 font-semibold text-emerald-700'
-                            : 'font-medium text-gray-600 hover:bg-emerald-50 hover:text-emerald-700'"
+                            ? 'bg-[#244034] font-semibold text-white'
+                            : 'font-medium text-[#9bb2a6] hover:bg-[#1e352b] hover:text-white'"
                     >
                         <svg
                             class="h-5 w-5"
@@ -153,8 +152,8 @@ const sair = () => {
                         :href="route('categorias.index')"
                         class="group flex items-center gap-3 rounded-xl px-3 py-3 text-sm transition"
                         :class="isActive('/categorias')
-                            ? 'bg-emerald-50 font-semibold text-emerald-700'
-                            : 'font-medium text-gray-600 hover:bg-emerald-50 hover:text-emerald-700'"
+                            ? 'bg-[#244034] font-semibold text-white'
+                            : 'font-medium text-[#9bb2a6] hover:bg-[#1e352b] hover:text-white'"
                     >
                         <svg
                             class="h-5 w-5"
@@ -176,7 +175,7 @@ const sair = () => {
 
             <div class="mt-8">
                 <p
-                    class="mb-3 px-3 text-[11px] font-semibold uppercase tracking-wider text-gray-400"
+                    class="mb-3 px-3 text-[11px] font-semibold uppercase tracking-wider text-[#7f9a8c]"
                 >
                     Financeiro
                 </p>
@@ -186,8 +185,8 @@ const sair = () => {
                         :href="route('receitas.index')"
                         class="group flex items-center gap-3 rounded-xl px-3 py-3 text-sm transition"
                         :class="isActive('/receitas')
-                            ? 'bg-emerald-50 font-semibold text-emerald-700'
-                            : 'font-medium text-gray-600 hover:bg-emerald-50 hover:text-emerald-700'"
+                            ? 'bg-[#244034] font-semibold text-white'
+                            : 'font-medium text-[#9bb2a6] hover:bg-[#1e352b] hover:text-white'"
                     >
                         <svg
                             class="h-5 w-5"
@@ -208,8 +207,8 @@ const sair = () => {
                         :href="route('despesas.index')"
                         class="group flex items-center gap-3 rounded-xl px-3 py-3 text-sm transition"
                         :class="isActive('/despesas')
-                            ? 'bg-emerald-50 font-semibold text-emerald-700'
-                            : 'font-medium text-gray-600 hover:bg-emerald-50 hover:text-emerald-700'"
+                            ? 'bg-[#244034] font-semibold text-white'
+                            : 'font-medium text-[#9bb2a6] hover:bg-[#1e352b] hover:text-white'"
                     >
                         <svg
                             class="h-5 w-5"
@@ -227,40 +226,11 @@ const sair = () => {
                     </Link>
 
                     <Link
-                        :href="route('recorrencias.index')"
-                        class="group flex items-center gap-3 rounded-xl px-3 py-3 text-sm transition"
-                        :class="isActive('/recorrencias')
-                            ? 'bg-emerald-50 font-semibold text-emerald-700'
-                            : 'font-medium text-gray-600 hover:bg-emerald-50 hover:text-emerald-700'"
-                    >
-                        <svg
-                            class="h-5 w-5"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="2"
-                        >
-                            <rect
-                                x="4"
-                                y="3"
-                                width="16"
-                                height="18"
-                                rx="2"
-                            />
-                            <path d="M8 7h8" />
-                            <path d="M8 11h8" />
-                            <path d="M8 15h5" />
-                        </svg>
-
-                        <span>Recorrências</span>
-                    </Link>
-
-                    <Link
                         :href="route('relatorios.index')"
                         class="group flex items-center gap-3 rounded-xl px-3 py-3 text-sm transition"
                         :class="isActive('/relatorios')
-                            ? 'bg-emerald-50 font-semibold text-emerald-700'
-                            : 'font-medium text-gray-600 hover:bg-emerald-50 hover:text-emerald-700'"
+                            ? 'bg-[#244034] font-semibold text-white'
+                            : 'font-medium text-[#9bb2a6] hover:bg-[#1e352b] hover:text-white'"
                     >
                         <svg
                             class="h-5 w-5"
@@ -282,7 +252,7 @@ const sair = () => {
 
             <div class="mt-8">
                 <p
-                    class="mb-3 px-3 text-[11px] font-semibold uppercase tracking-wider text-gray-400"
+                    class="mb-3 px-3 text-[11px] font-semibold uppercase tracking-wider text-[#7f9a8c]"
                 >
                     Configurações
                 </p>
@@ -292,8 +262,8 @@ const sair = () => {
                         :href="route('empresas.index')"
                         class="group flex items-center gap-3 rounded-xl px-3 py-3 text-sm transition"
                         :class="isActive('/empresas')
-                            ? 'bg-emerald-50 font-semibold text-emerald-700'
-                            : 'font-medium text-gray-600 hover:bg-emerald-50 hover:text-emerald-700'"
+                            ? 'bg-[#244034] font-semibold text-white'
+                            : 'font-medium text-[#9bb2a6] hover:bg-[#1e352b] hover:text-white'"
                     >
                         <svg
                             class="h-5 w-5"
@@ -317,8 +287,8 @@ const sair = () => {
         </nav>
 
         <!-- Rodapé -->
-        <div class="border-t border-gray-100 p-4">
-            <div class="mb-3 flex items-center gap-3 rounded-xl bg-gray-50 p-3">
+        <div class="border-t border-[#22392f] p-4">
+            <div class="mb-3 flex items-center gap-3 rounded-xl bg-[#182a22] p-3">
                 <div
                     class="flex h-9 w-9 items-center justify-center rounded-full bg-emerald-600 font-semibold text-white"
                 >
@@ -326,11 +296,11 @@ const sair = () => {
                 </div>
 
                 <div class="min-w-0 flex-1">
-                    <p class="truncate text-sm font-semibold text-gray-800">
+                    <p class="truncate text-sm font-semibold text-[#e9f2ed]">
                         {{ usuario?.name }}
                     </p>
 
-                    <p class="truncate text-xs text-gray-400">
+                    <p class="truncate text-xs text-[#8ba899]">
                         {{ usuario?.email }}
                     </p>
                 </div>
@@ -339,10 +309,10 @@ const sair = () => {
             <button
                 type="button"
                 @click="sair"
-                class="group flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium text-gray-500 transition hover:bg-red-50 hover:text-red-600"
+                class="group flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium text-[#9bb2a6] transition hover:bg-red-500/10 hover:text-red-300"
             >
                 <svg
-                    class="h-5 w-5 text-gray-400 transition group-hover:text-red-500"
+                    class="h-5 w-5 text-[#83a091] transition group-hover:text-red-300"
                     viewBox="0 0 24 24"
                     fill="none"
                     stroke="currentColor"

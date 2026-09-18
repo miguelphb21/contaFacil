@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useForm } from '@inertiajs/vue3'
+import Checkbox from '@/Components/Checkbox.vue'
 import type { LancamentoItem, LancamentoStatus, Opcao } from '@/types'
 import { computed, watch } from 'vue'
 
@@ -11,6 +12,8 @@ interface FormProps {
     forma_pagamento: string | null
     categoria_id: number | null
     contraparte_id: number | null
+    recorrente: boolean
+    data_fim: string | null
 }
 
 const emit = defineEmits<{
@@ -23,6 +26,7 @@ const props = defineProps<{
     categorias: Opcao[]
     contrapartes: Opcao[]
     prefixoRota: string
+    periodo: string
 }>()
 
 const form = useForm<FormProps>({
@@ -33,6 +37,8 @@ const form = useForm<FormProps>({
     forma_pagamento: null,
     categoria_id: null,
     contraparte_id: null,
+    recorrente: false,
+    data_fim: null,
 })
 
 const titulo = computed(() =>
@@ -53,10 +59,17 @@ watch(
 
         if (props.lancamento) {
             form.descricao = props.lancamento.descricao
-            form.valor = props.lancamento.valor
+            form.valor = Number(props.lancamento.valor).toLocaleString('pt-BR', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+            })
             form.data_vencimento = props.lancamento.data.slice(0, 10)
             form.status = props.lancamento.status
             form.forma_pagamento = props.lancamento.forma_pagamento
+            form.categoria_id = props.lancamento.categoria?.id ?? null
+            form.contraparte_id = props.lancamento.contraparte?.id ?? null
+            form.recorrente = props.lancamento.recorrencia !== null
+            form.data_fim = props.lancamento.recorrencia?.data_fim?.slice(0, 10) ?? null
         }
     },
 )
@@ -74,6 +87,9 @@ const enviar = () => {
         forma_pagamento: dados.forma_pagamento,
         categoria_id: dados.categoria_id,
         contraparte_id: dados.contraparte_id,
+        recorrente: dados.recorrente,
+        data_fim: dados.recorrente ? dados.data_fim : null,
+        periodo: props.periodo,
     }))
 
     if (props.lancamento) {
@@ -115,20 +131,20 @@ const statusOpcoes: Array<{ valor: FormProps['status']; label: string }> = [
             class="fixed inset-0 z-[60] flex items-center justify-center p-4"
         >
             <div
-                class="absolute inset-0 bg-gray-900/50 backdrop-blur-sm"
+                class="absolute inset-0 bg-slate-900/50 backdrop-blur-sm"
                 @click="emit('fechado')"
             />
 
-            <div class="relative w-full max-w-xl overflow-hidden rounded-xl border border-gray-200 bg-white shadow-xl">
-                <div class="flex items-center justify-between border-b border-gray-100 px-6 py-5">
-                    <h2 class="text-lg font-bold text-gray-900">
+            <div class="relative w-full max-w-xl overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl">
+                <div class="flex items-center justify-between border-b border-slate-100 px-6 py-5">
+                    <h2 class="text-lg font-bold text-slate-900">
                         {{ titulo }}
                     </h2>
 
                     <button
                         type="button"
                         @click="emit('fechado')"
-                        class="flex h-9 w-9 items-center justify-center rounded-lg text-gray-400 transition hover:bg-gray-100 hover:text-gray-700"
+                        class="flex h-9 w-9 items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
                         aria-label="Fechar"
                     >
                         <svg
@@ -149,7 +165,7 @@ const statusOpcoes: Array<{ valor: FormProps['status']; label: string }> = [
                             <label
                                 for="lancamento_descricao"
                                 class="mb-2 block text-sm font-medium"
-                                :class="form.errors.descricao ? 'text-red-600' : 'text-gray-700'"
+                                :class="form.errors.descricao ? 'text-red-600' : 'text-slate-700'"
                             >
                                 Descrição
                             </label>
@@ -159,10 +175,10 @@ const statusOpcoes: Array<{ valor: FormProps['status']; label: string }> = [
                                 v-model="form.descricao"
                                 type="text"
                                 placeholder="Ex.: Venda à vista"
-                                class="w-full rounded-lg border bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition"
+                                class="w-full rounded-lg border bg-white px-4 py-2.5 text-sm text-slate-900 outline-none transition"
                                 :class="form.errors.descricao
                                     ? 'border-red-500 bg-red-50'
-                                    : 'border-gray-300 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100'"
+                                    : 'border-slate-300 focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10'"
                             />
 
                             <p
@@ -178,7 +194,7 @@ const statusOpcoes: Array<{ valor: FormProps['status']; label: string }> = [
                                 <label
                                     for="lancamento_valor"
                                     class="mb-2 block text-sm font-medium"
-                                    :class="form.errors.valor ? 'text-red-600' : 'text-gray-700'"
+                                    :class="form.errors.valor ? 'text-red-600' : 'text-slate-700'"
                                 >
                                     Valor
                                 </label>
@@ -189,10 +205,10 @@ const statusOpcoes: Array<{ valor: FormProps['status']; label: string }> = [
                                     type="text"
                                     inputmode="decimal"
                                     placeholder="0,00"
-                                    class="w-full rounded-lg border bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition"
+                                    class="w-full rounded-lg border bg-white px-4 py-2.5 text-sm text-slate-900 outline-none transition"
                                     :class="form.errors.valor
                                         ? 'border-red-500 bg-red-50'
-                                        : 'border-gray-300 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100'"
+                                        : 'border-slate-300 focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10'"
                                 />
 
                                 <p
@@ -207,7 +223,7 @@ const statusOpcoes: Array<{ valor: FormProps['status']; label: string }> = [
                                 <label
                                     for="lancamento_data"
                                     class="mb-2 block text-sm font-medium"
-                                    :class="erroData ? 'text-red-600' : 'text-gray-700'"
+                                    :class="erroData ? 'text-red-600' : 'text-slate-700'"
                                 >
                                     Data
                                 </label>
@@ -216,10 +232,10 @@ const statusOpcoes: Array<{ valor: FormProps['status']; label: string }> = [
                                     id="lancamento_data"
                                     v-model="form.data_vencimento"
                                     type="date"
-                                    class="w-full rounded-lg border bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition"
+                                    class="w-full rounded-lg border bg-white px-4 py-2.5 text-sm text-slate-900 outline-none transition"
                                     :class="erroData
                                         ? 'border-red-500 bg-red-50'
-                                        : 'border-gray-300 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100'"
+                                        : 'border-slate-300 focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10'"
                                 />
 
                                 <p
@@ -231,11 +247,83 @@ const statusOpcoes: Array<{ valor: FormProps['status']; label: string }> = [
                             </div>
                         </div>
 
+                        <div class="rounded-lg border border-slate-200 bg-slate-50 p-4">
+                            <label class="flex cursor-pointer items-center gap-3">
+                                <Checkbox v-model:checked="form.recorrente" />
+
+                                <span class="text-sm font-medium text-slate-700">
+                                    Tornar esta movimentação recorrente
+                                </span>
+                            </label>
+
+                            <div
+                                v-if="form.recorrente"
+                                class="mt-4 border-t border-slate-200 pt-4"
+                            >
+                                <p class="text-sm font-semibold text-slate-900">
+                                    Período da conta
+                                </p>
+
+                                <div class="mt-3 grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label
+                                            for="lancamento_recorrencia_inicio"
+                                            class="mb-2 block text-sm font-medium text-slate-700"
+                                        >
+                                            Data inicial
+                                        </label>
+
+                                        <input
+                                            id="lancamento_recorrencia_inicio"
+                                            :value="form.data_vencimento"
+                                            type="date"
+                                            readonly
+                                            class="w-full rounded-lg border border-slate-200 bg-slate-100 px-4 py-2.5 text-sm text-slate-500 outline-none"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label
+                                            for="lancamento_recorrencia_fim"
+                                            class="mb-2 block text-sm font-medium"
+                                            :class="form.errors.data_fim ? 'text-red-600' : 'text-slate-700'"
+                                        >
+                                            Data final
+                                        </label>
+
+                                        <input
+                                            id="lancamento_recorrencia_fim"
+                                            v-model="form.data_fim"
+                                            type="date"
+                                            class="w-full rounded-lg border bg-white px-4 py-2.5 text-sm text-slate-900 outline-none transition"
+                                            :class="form.errors.data_fim
+                                                ? 'border-red-500 bg-red-50'
+                                                : 'border-slate-300 focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10'"
+                                        />
+
+                                        <p
+                                            v-if="form.errors.data_fim"
+                                            class="mt-1.5 text-sm font-medium text-red-600"
+                                        >
+                                            {{ form.errors.data_fim }}
+                                        </p>
+
+                                        <p
+                                            v-else
+                                            class="mt-1.5 text-xs text-slate-500"
+                                        >
+                                            Sem data final a recorrência é contínua (sem limite).
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="grid grid-cols-2 gap-4">
                             <div>
                                 <label
                                     for="lancamento_categoria"
-                                    class="mb-2 block text-sm font-medium text-gray-700"
+                                    class="mb-2 block text-sm font-medium text-slate-700"
                                 >
                                     Categoria
                                 </label>
@@ -243,7 +331,7 @@ const statusOpcoes: Array<{ valor: FormProps['status']; label: string }> = [
                                 <select
                                     id="lancamento_categoria"
                                     v-model="form.categoria_id"
-                                    class="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+                                    class="w-full rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-900 outline-none transition focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10"
                                 >
                                     <option :value="null">
                                         Sem categoria
@@ -262,7 +350,7 @@ const statusOpcoes: Array<{ valor: FormProps['status']; label: string }> = [
                             <div>
                                 <label
                                     for="lancamento_contraparte"
-                                    class="mb-2 block text-sm font-medium text-gray-700"
+                                    class="mb-2 block text-sm font-medium text-slate-700"
                                 >
                                     Contraparte
                                 </label>
@@ -270,7 +358,7 @@ const statusOpcoes: Array<{ valor: FormProps['status']; label: string }> = [
                                 <select
                                     id="lancamento_contraparte"
                                     v-model="form.contraparte_id"
-                                    class="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+                                    class="w-full rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-900 outline-none transition focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10"
                                 >
                                     <option :value="null">
                                         Sem contraparte
@@ -293,7 +381,7 @@ const statusOpcoes: Array<{ valor: FormProps['status']; label: string }> = [
                             <div v-if="mostrarFormaPagamento">
                                 <label
                                     for="lancamento_forma_pagamento"
-                                    class="mb-2 block text-sm font-medium text-gray-700"
+                                    class="mb-2 block text-sm font-medium text-slate-700"
                                 >
                                     Forma de pagamento
                                 </label>
@@ -304,19 +392,19 @@ const statusOpcoes: Array<{ valor: FormProps['status']; label: string }> = [
                                     type="text"
                                     maxlength="50"
                                     placeholder="Ex.: Pix, Cartão, Boleto"
-                                    class="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+                                    class="w-full rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-900 outline-none transition focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10"
                                 />
                             </div>
                         </div>
                     </div>
 
                     <div
-                        class="flex items-center justify-end gap-3 border-t border-gray-100 bg-gray-50 px-6 py-4"
+                        class="flex items-center justify-end gap-3 border-t border-slate-100 bg-slate-50 px-6 py-4"
                     >
                         <button
                             type="button"
                             @click="emit('fechado')"
-                            class="rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+                            class="rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
                         >
                             Cancelar
                         </button>
@@ -324,7 +412,7 @@ const statusOpcoes: Array<{ valor: FormProps['status']; label: string }> = [
                         <button
                             type="submit"
                             :disabled="form.processing"
-                            class="rounded-lg bg-emerald-700 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-60"
+                            class="rounded-lg bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-60"
                         >
                             {{ form.processing ? 'Salvando...' : 'Salvar' }}
                         </button>

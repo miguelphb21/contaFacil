@@ -16,11 +16,15 @@ class StoreLancamentoRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
+        $recorrente = $this->boolean('recorrente');
+
         $this->merge([
             'empresa_id' => (int) session('empresa_ativa_id'),
             'tipo' => str_starts_with($this->route()->getName(), 'receitas')
                 ? LancamentoTipo::Receita->value
                 : LancamentoTipo::Despesa->value,
+            'recorrente' => $recorrente,
+            'data_fim' => $recorrente ? ($this->input('data_fim') ?: null) : null,
         ]);
     }
 
@@ -58,6 +62,17 @@ class StoreLancamentoRequest extends FormRequest
             'data' => [
                 'required',
                 'date',
+            ],
+
+            'recorrente' => [
+                'sometimes',
+                'boolean',
+            ],
+
+            'data_fim' => [
+                'nullable',
+                'date',
+                'after_or_equal:data',
             ],
 
             'status' => [
@@ -109,6 +124,9 @@ class StoreLancamentoRequest extends FormRequest
 
             'data.required' => 'Informe a data do lançamento.',
             'data.date' => 'A data informada é inválida.',
+
+            'data_fim.date' => 'A data final da recorrência é inválida.',
+            'data_fim.after_or_equal' => 'A data final deve ser igual ou posterior à data inicial.',
 
             'categoria_id.exists' => 'A categoria selecionada é inválida.',
             'contraparte_id.exists' => 'A contraparte selecionada é inválida.',
