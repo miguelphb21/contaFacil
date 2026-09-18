@@ -21,39 +21,38 @@ const verificationLinkSent = computed(() => props.status === 'verification-link-
 <template>
     <Head title="Verificar e-mail" />
 
-    <AuthenticationCard>
+    <AuthenticationCard
+        title="Verificar e-mail"
+        description="Antes de continuar, confirme seu endereço de e-mail clicando no link que acabamos de enviar."
+    >
         <template #logo>
             <AuthenticationCardLogo />
         </template>
 
-        <div class="mb-4 text-sm text-slate-600">
-            Before continuing, could you verify your email address by clicking on the link we just emailed to you? If you didn't receive the email, we will gladly send you another.
-        </div>
-
         <div v-if="verificationLinkSent" class="mb-4 font-medium text-sm text-green-600">
-            A new verification link has been sent to the email address you provided in your profile settings.
+            Um novo link de verificação foi enviado para o e-mail informado no seu perfil.
         </div>
 
         <form @submit.prevent="submit">
             <div class="mt-4 flex items-center justify-between">
                 <PrimaryButton :class="{ 'opacity-25': form.processing }" :disabled="form.processing">
-                    Resend Verification Email
+                    Reenviar e-mail de verificação
                 </PrimaryButton>
 
                 <div>
                     <Link
                         :href="route('profile.show')"
-                        class="underline text-sm text-slate-600 hover:text-slate-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-900"
+                        class="underline text-sm text-emerald-600 hover:text-emerald-800 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500"
                     >
-                        Edit Profile</Link>
+                        Editar perfil</Link>
 
                     <Link
                         :href="route('logout')"
                         method="post"
                         as="button"
-                        class="underline text-sm text-slate-600 hover:text-slate-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-900 ms-2"
+                        class="underline text-sm text-emerald-600 hover:text-emerald-800 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 ms-2"
                     >
-                        Log Out
+                        Sair
                     </Link>
                 </div>
             </div>
