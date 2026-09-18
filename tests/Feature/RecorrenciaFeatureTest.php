@@ -271,6 +271,46 @@ it('closes the recorrência and stops generating future months', function () {
     expect(app(RecorrenciaService::class)->manterHorizonte(24))->toBe(0);
 });
 
+it('removes all future pending occurrences when encerrar is triggered from a future occurrence', function (string $tipo, string $rota) {
+    $this->travelTo('2026-01-15 12:00:00');
+
+    $user = User::factory()->create();
+    $empresa = Empresa::factory()->create();
+    $user->empresas()->attach($empresa);
+
+    $recorrencia = Recorrencia::factory()->for($empresa)->{$tipo}()->create([
+        'descricao' => "Recorrente {$tipo}",
+        'valor' => '150.00',
+        'dia' => 10,
+        'data_inicio' => '2026-01-01',
+    ]);
+
+    app(RecorrenciaService::class)->manterHorizonte(24);
+
+    expect($recorrencia->lancamentos()->count())->toBe(25);
+
+    $futura = $recorrencia->lancamentos()
+        ->whereBetween('data', ['2026-12-01', '2026-12-31'])
+        ->firstOrFail();
+
+    $this->actingAs($user)
+        ->withSession(['empresa_ativa_id' => $empresa->getKey()])
+        ->from($rota)
+        ->post("{$rota}/{$futura->getKey()}/encerrar-recorrencia")
+        ->assertRedirect($rota)
+        ->assertSessionHas('success', 'Recorrência encerrada com sucesso.');
+
+    $recorrencia->refresh();
+
+    expect($recorrencia->ativa)->toBeFalse()
+        ->and($recorrencia->lancamentos()
+            ->whereDate('data', '>', '2026-01-15')
+            ->count())->toBe(0);
+})->with([
+    'despesa' => ['despesa', '/despesas'],
+    'receita' => ['receita', '/receitas'],
+]);
+
 it('returns 404 when closing a recorrência of another empresa', function () {
     $user = User::factory()->create();
     $empresa = Empresa::factory()->create();

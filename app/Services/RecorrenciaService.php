@@ -63,7 +63,7 @@ class RecorrenciaService
 
     /**
      * Registra o mês de uma ocorrência excluída para que a série não volte a
-     * gerar a movimentação nesse período em nenhuma regeração futura.
+     * gerar a movimentação nesse período em nenhuma regeneração futura.
      */
     public function registrarMesExcluido(Recorrencia $recorrencia, CarbonImmutable $data): void
     {
@@ -135,12 +135,16 @@ class RecorrenciaService
 
     /**
      * Encerra a série a partir da data informada, mantendo o histórico gerado.
-     * As ocorrências pendentes posteriores à data final são removidas, pois a
-     * série desativada não deve continuar projetando lançamentos futuros.
+     * As ocorrências pendentes posteriores à data final são removidas. A data
+     * final nunca ultrapassa hoje, garantindo que nenhuma pendência futura
+     * sobreviva mesmo quando a ação é disparada numa ocorrência futura.
      */
     public function encerrar(Recorrencia $recorrencia, ?CarbonImmutable $fim = null): void
     {
-        $dataFim = ($fim ?? CarbonImmutable::now())->toDateString();
+        $referencia = $fim ?? CarbonImmutable::now();
+        $hoje = CarbonImmutable::now();
+
+        $dataFim = ($referencia->lessThan($hoje) ? $referencia : $hoje)->toDateString();
 
         $recorrencia->update([
             'ativa' => false,
